@@ -5,217 +5,261 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CampusCode - SuperAdmin Dashboard</title>
     <link rel="shortcut icon" href="/campuscode-logo.jpeg" type="image/jpeg">
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
+            darkMode: "class",
             theme: {
                 extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
                     colors: {
-                        themeLightest: '#E7F0FA',
-                        themeLight: '#7BA4D0',
-                        themePrimary: '#2E5E99',
-                        themeDark: '#0D2440',
-                        darkSurface: '#1E293B',
-                        darkBg: '#0F172A'
-                    },
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    }
                 }
             }
-        }
+        };
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Poppins', sans-serif; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #7BA4D0; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+        
+        /* Sidebar Styles matching Forum */
+        .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+        .sidebar-brand { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+        .sidebar-brand-logo { width: 2.25rem; height: 2.25rem; object-fit: contain; flex-shrink: 0; }
+        .nav-item {
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.25rem;
+            color: #374151;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .nav-item:hover { background-color: #f3f4f6; }
+        .dark .nav-item { color: #d1d5db; }
+        .dark .nav-item:hover { background-color: #374151; }
+        .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; font-weight: 600; }
+        .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
+        .nav-item.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 4px;
+            background-color: #2e5e99;
+            border-radius: 0 4px 4px 0;
+        }
+        .dark .nav-item.active::before { background-color: #60a5fa; }
+        .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
+        .nav-item span { font-size: 0.875rem; }
+
+        /* Modal specific */
+        .glass-overlay { background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(8px); }
         #modal-backdrop { transition: opacity 0.3s ease; }
         #modal-content { transition: transform 0.3s ease, opacity 0.3s ease; }
     </style>
 </head>
-<body class="bg-themeLightest dark:bg-darkBg text-themeDark dark:text-gray-100 h-screen flex overflow-hidden p-4 gap-6 transition-colors duration-300">
-    <aside class="w-64 bg-white dark:bg-darkSurface rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between h-full z-20 relative overflow-hidden shrink-0 transition-colors duration-300">
-        <div class="absolute -top-10 -left-10 w-32 h-32 bg-themeLightest dark:bg-themePrimary/20 rounded-full mix-blend-multiply filter blur-2xl opacity-70"></div>
-        <div class="z-10 flex flex-col h-full">
-            <div class="p-8 pb-4 flex items-center space-x-3 text-themeDark dark:text-white">
-                <div class="bg-gradient-to-br from-themePrimary to-themeDark text-white rounded-xl p-2.5 shadow-md">
-                    <img src="/campuscode-logo.jpeg" alt="CampusCode logo" class="w-5 h-5 object-contain">
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+
+    <div id="appShell" class="flex h-screen overflow-hidden">
+        <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+            <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+                <div class="sidebar-brand text-2xl font-bold text-gray-800 dark:text-white overflow-hidden whitespace-nowrap">
+                    <img src="/campuscode-logo.jpeg" alt="CampusCode logo" class="sidebar-brand-logo rounded-md shadow-sm">
+                    <span class="transition-all duration-300 opacity-100 w-auto">CampusCode<span class="text-primary-400 dark:text-primary-200 text-xs align-top ml-0.5">SA</span></span>
                 </div>
-                <span class="text-2xl font-extrabold tracking-tight">CampusCode<span class="text-themePrimary dark:text-themeLight text-sm font-bold align-top ml-0.5">SA</span></span>
             </div>
 
-            <nav class="space-y-2 px-4 mt-6 flex-1">
-                <p class="px-4 text-[10px] font-extrabold text-themeLight dark:text-gray-400 uppercase tracking-widest mb-3">Menu</p>
-                <a href="/superadmin/dashboard" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl bg-themePrimary text-white shadow-md shadow-themePrimary/20 transition-all font-semibold text-sm transform translate-x-1">
-                    <i class="fa-solid fa-building-columns text-lg"></i>
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+                <p class="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 mt-2">Menu</p>
+                <a href="/superadmin/dashboard" class="nav-item active">
+                    <i class="fa-solid fa-building-columns"></i>
                     <span>Manage Colleges</span>
                 </a>
-                <a href="/superadmin/problems" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm">
-                    <i class="fa-solid fa-code text-lg transition-transform group-hover:scale-110"></i>
+                <a href="/superadmin/problems" class="nav-item">
+                    <i class="fa-solid fa-code"></i>
                     <span>Manage Problems</span>
                 </a>
-                <a href="/superadmin/contest" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm">
-                    <i class="fa-solid fa-trophy text-lg transition-transform group-hover:scale-110"></i>
+                <a href="/superadmin/contest" class="nav-item">
+                    <i class="fa-solid fa-trophy"></i>
                     <span>Manage Contests</span>
                 </a>
-                <a href="/superadmin/support" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm">
-                    <i class="fa-solid fa-life-ring text-lg transition-transform group-hover:scale-110"></i>
+                <a href="/superadmin/support" class="nav-item">
+                    <i class="fa-solid fa-life-ring"></i>
                     <span>Support Tickets</span>
                 </a>
-                <a href="/forum/forum.html" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm">
-                    <i class="fa-solid fa-comments text-lg transition-transform group-hover:scale-110"></i>
+                <a href="/forum/forum.html" class="nav-item">
+                    <i class="fa-solid fa-comments"></i>
                     <span>Community Forum</span>
                 </a>
             </nav>
 
-            <div class="p-4 mt-auto">
-                <a href="/auth/logout" class="mb-3 flex items-center space-x-3 px-4 py-3 rounded-2xl text-themeLight dark:text-gray-300 hover:bg-themeLightest dark:hover:bg-gray-800 transition">
+            <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+                <a href="/auth/logout" class="nav-item text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
                     <i class="fa-solid fa-right-from-bracket"></i>
-                    <span class="font-semibold text-sm">Logout</span>
+                    <span>Logout</span>
                 </a>
-                <div class="bg-themeLightest/50 dark:bg-gray-800 p-4 rounded-3xl border border-themeLight/10 dark:border-gray-700 flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-themePrimary to-themeLight text-white flex items-center justify-center font-bold text-sm shadow-inner">
-                            <%= user.fullName.split(' ').filter(Boolean).slice(0,2).map(part => part[0]).join('').toUpperCase() %>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="text-sm font-bold text-themeDark dark:text-white leading-tight"><%= user.fullName %></span>
-                            <span class="text-[10px] font-semibold text-themePrimary dark:text-themeLight uppercase tracking-wider">SuperAdmin</span>
-                        </div>
+                <div class="w-full text-left flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700 mt-2 border border-gray-100 dark:border-gray-600">
+                    <div class="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-inner">
+                        <%= user.fullName.split(' ').filter(Boolean).slice(0,2).map(part => part[0]).join('').toUpperCase() %>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-sm font-bold text-gray-800 dark:text-white truncate leading-tight"><%= user.fullName %></div>
+                        <div class="text-[10px] text-primary-500 dark:text-primary-200 font-semibold uppercase tracking-wider">SuperAdmin</div>
                     </div>
                 </div>
             </div>
-        </div>
-    </aside>
+        </aside>
 
-    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-        <header class="flex justify-between items-center py-4 px-2 z-10 shrink-0">
-            <div>
-                <h1 class="text-3xl font-extrabold text-themeDark dark:text-white tracking-tight">Platform Overview</h1>
-                <p class="text-sm font-medium text-themeLight dark:text-gray-400 mt-1">Manage colleges, approvals, and platform access.</p>
-            </div>
-            <div class="flex items-center space-x-4">
-                <button onclick="toggleTheme()" class="w-10 h-10 bg-white dark:bg-darkSurface rounded-full flex items-center justify-center text-themeLight dark:text-yellow-400 hover:text-themePrimary shadow-sm transition-all border border-transparent dark:border-gray-700">
-                    <i id="theme-toggle-dark-icon" class="fa-solid fa-moon dark:hidden"></i>
-                    <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden dark:block"></i>
-                </button>
-                <button class="w-10 h-10 bg-white dark:bg-darkSurface rounded-full flex items-center justify-center text-themeLight dark:text-gray-300 hover:text-themePrimary shadow-sm transition-all border border-transparent dark:border-gray-700"><i class="fa-solid fa-bell"></i></button>
-            </div>
-        </header>
-
-        <div class="flex-1 overflow-y-auto pb-8 pr-2 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white dark:bg-darkSurface rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col justify-between border border-white dark:border-gray-800">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-2xl bg-themeLightest dark:bg-themePrimary/20 text-themePrimary dark:text-themeLight flex items-center justify-center text-xl"><i class="fa-solid fa-university"></i></div>
-                    </div>
+        <div class="flex-1 overflow-y-auto w-full">
+            <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
                     <div>
-                        <p id="stat-total-colleges" class="text-4xl font-extrabold text-themeDark dark:text-white mb-1"><i class="fas fa-circle-notch fa-spin text-sm text-gray-400"></i></p>
-                        <p class="text-sm font-semibold text-themeLight dark:text-gray-400">Registered Colleges</p>
+                        <h1 class="text-xl font-bold text-gray-800 dark:text-white tracking-tight">Platform Overview</h1>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">Manage colleges, approvals, and platform access.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleTheme()" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                            <i id="theme-toggle-dark-icon" class="fa-solid fa-moon dark:hidden text-lg"></i>
+                            <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden dark:block text-lg"></i>
+                        </button>
+                        <button class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 relative">
+                            <i class="fa-solid fa-bell text-lg"></i>
+                            <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-gray-800 dark:text-gray-100">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between transition-colors duration-200">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-primary-50 dark:bg-primary-600/30 text-primary-500 dark:text-primary-200 flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-university"></i></div>
+                        </div>
+                        <div>
+                            <p id="stat-total-colleges" class="text-4xl font-bold text-gray-800 dark:text-white mb-1"><i class="fas fa-circle-notch fa-spin text-sm text-gray-400"></i></p>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Registered Colleges</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between transition-colors duration-200">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500 flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-user-clock"></i></div>
+                        </div>
+                        <div>
+                            <p id="stat-pending-admins" class="text-4xl font-bold text-gray-800 dark:text-white mb-1">0</p>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Requests</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-primary-600 to-[#2E5E99] rounded-2xl p-6 shadow-lg flex flex-col justify-between text-white relative overflow-hidden">
+                        <i class="fa-solid fa-shield-check absolute -right-4 -bottom-4 text-8xl opacity-10"></i>
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-xl"><i class="fa-solid fa-server"></i></div>
+                            <span class="flex items-center space-x-1.5 bg-white/20 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/10">
+                                <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div><span>Online</span>
+                            </span>
+                        </div>
+                        <div class="relative z-10 mt-2">
+                            <p class="text-3xl font-bold mb-1">Active</p>
+                            <p class="text-sm font-medium text-blue-100">Platform Access Status</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-darkSurface rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col justify-between border border-white dark:border-gray-800">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-2xl bg-[#FFF9E6] dark:bg-yellow-900/30 text-[#FFAA00] flex items-center justify-center text-xl"><i class="fa-solid fa-user-clock"></i></div>
+                <section class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8 overflow-hidden transition-colors duration-200">
+                    <div class="px-6 py-5 flex justify-between items-center border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center">
+                            <span class="w-2 h-6 bg-primary-400 rounded-full mr-3"></span>Authorized Institutions
+                        </h3>
+                        <button onclick="openModal()" class="bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium px-4 py-2 rounded-xl shadow-sm transition-all flex items-center">
+                            <i class="fa-solid fa-plus mr-2"></i> Add College
+                        </button>
                     </div>
-                    <div>
-                        <p id="stat-pending-admins" class="text-4xl font-extrabold text-themeDark dark:text-white mb-1">0</p>
-                        <p class="text-sm font-semibold text-themeLight dark:text-gray-400">Pending Requests</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[700px]">
+                            <thead>
+                                <tr class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                                    <th class="px-6 py-4">ID</th>
+                                    <th class="px-6 py-4">Institution Name</th>
+                                    <th class="px-6 py-4">Administrator</th>
+                                    <th class="px-6 py-4 text-center">Status</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="college-table-body" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                        </table>
                     </div>
-                </div>
+                </section>
 
-                <div class="bg-gradient-to-br from-themePrimary to-[#1A3A5F] dark:from-themePrimary dark:to-gray-900 rounded-[2rem] p-6 shadow-lg flex flex-col justify-between text-white relative overflow-hidden">
-                    <i class="fa-solid fa-shield-check absolute -right-4 -bottom-4 text-8xl opacity-10"></i>
-                    <div class="flex justify-between items-start mb-4 relative z-10">
-                        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-xl"><i class="fa-solid fa-server"></i></div>
-                        <span class="flex items-center space-x-1.5 bg-white/20 backdrop-blur text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                            <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div><span>Online</span>
-                        </span>
+                <section class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-200">
+                    <div class="px-6 py-5 flex justify-between items-center border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center">
+                            <span class="w-2 h-6 bg-yellow-500 rounded-full mr-3"></span>Pending Registrations
+                        </h3>
                     </div>
-                    <div class="relative z-10">
-                        <p class="text-3xl font-extrabold mb-1">Active</p>
-                        <p class="text-sm font-medium text-themeLightest/80">Platform Access Status</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[700px]">
+                            <thead>
+                                <tr class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                                    <th class="px-6 py-4">Applicant Name</th>
+                                    <th class="px-6 py-4">Email</th>
+                                    <th class="px-6 py-4">College Name</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingAdminsTableBody" class="divide-y divide-gray-100 dark:divide-gray-700">
+                                <tr><td colspan="4" class="py-8 text-center text-gray-500 dark:text-gray-400 italic">Loading requests...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            </div>
+                </section>
 
-            <div class="bg-white dark:bg-darkSurface rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-transparent dark:border-gray-800 p-1 transition-colors duration-300">
-                <div class="px-6 py-5 flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-themeDark dark:text-white flex items-center">
-                        <span class="w-2 h-6 bg-themePrimary rounded-full mr-3"></span>Authorized Institutions
-                    </h3>
-                    <button onclick="openModal()" class="bg-themePrimary hover:bg-themeDark dark:hover:bg-themeLight text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-md transition-all flex items-center">
-                        <i class="fa-solid fa-plus mr-2"></i> Add College
-                    </button>
-                </div>
-                <div class="px-4 pb-4 overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[700px]">
-                        <thead>
-                            <tr class="text-[11px] font-extrabold text-themeLight dark:text-gray-400 uppercase tracking-wider border-b border-themeLightest dark:border-gray-700">
-                                <th class="px-4 py-3">ID</th>
-                                <th class="px-4 py-3">Institution Name</th>
-                                <th class="px-4 py-3">Administrator</th>
-                                <th class="px-4 py-3 text-center">Status</th>
-                                <th class="px-4 py-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="college-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-darkSurface rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-transparent dark:border-gray-800 p-1 transition-colors duration-300">
-                <div class="px-6 py-5 flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-themeDark dark:text-white flex items-center">
-                        <span class="w-2 h-6 bg-yellow-500 rounded-full mr-3"></span>Pending College Registrations
-                    </h3>
-                </div>
-                <div class="px-4 pb-4 overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[700px]">
-                        <thead>
-                            <tr class="text-[11px] font-extrabold text-themeLight dark:text-gray-400 uppercase tracking-wider border-b border-themeLightest dark:border-gray-700">
-                                <th class="px-4 py-3">Applicant Name</th>
-                                <th class="px-4 py-3">Email</th>
-                                <th class="px-4 py-3">College Name</th>
-                                <th class="px-4 py-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pendingAdminsTableBody">
-                            <tr><td colspan="4" class="py-8 text-center text-gray-500 italic">Loading requests...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            </main>
         </div>
-    </main>
+    </div>
 
     <div id="collegeModal" class="fixed inset-0 z-50 hidden items-center justify-center">
-        <div id="modal-backdrop" onclick="closeModal()" class="absolute inset-0 bg-themeDark/40 dark:bg-black/60 backdrop-blur-sm opacity-0"></div>
-        <div id="modal-content" class="relative bg-white dark:bg-darkSurface rounded-3xl shadow-2xl w-full max-w-md p-8 transform scale-95 opacity-0 border border-transparent dark:border-gray-700">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-extrabold text-themeDark dark:text-white">Add College</h2>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-themeLightest dark:bg-gray-800 text-themeDark dark:text-gray-300 hover:text-red-500 flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
+        <div id="modal-backdrop" onclick="closeModal()" class="absolute inset-0 glass-overlay opacity-0"></div>
+        <div id="modal-content" class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md transform scale-95 opacity-0 border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="h-20 bg-gradient-to-r from-primary-600 to-[#2E5E99] relative flex items-center px-6">
+                <h2 class="text-xl font-bold text-white">Add Institution</h2>
+                <button onclick="closeModal()" class="absolute top-1/2 -translate-y-1/2 right-4 text-white/80 hover:text-white transition w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10">
+                    <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
-            <form id="collegeForm" onsubmit="saveCollege(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-extrabold text-themeLight dark:text-gray-400 uppercase tracking-wider mb-2">Institution Name</label>
-                    <input type="text" id="collegeName" required placeholder="e.g. Bharat Institute of Technology"
-                        class="w-full px-4 py-3 rounded-xl bg-themeLightest/50 dark:bg-gray-800 border border-transparent dark:border-gray-700 focus:border-themePrimary focus:bg-white dark:focus:bg-darkSurface focus:ring-0 text-sm font-semibold text-themeDark dark:text-white outline-none transition-all placeholder-themeLight/50">
-                </div>
-                <div class="pt-4 flex justify-end space-x-3">
-                    <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-full text-sm font-bold text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 transition-colors">Cancel</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-full text-sm font-bold bg-themePrimary text-white hover:bg-themeDark dark:hover:bg-themeLight shadow-md transition-all">Save Changes</button>
-                </div>
-            </form>
+            <div class="p-6">
+                <form id="collegeForm" onsubmit="saveCollege(event)" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Institution Name</label>
+                        <input type="text" id="collegeName" required placeholder="e.g. Bharat Institute of Technology"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all">
+                    </div>
+                    <div class="pt-4 flex justify-end space-x-3">
+                        <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+                        <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-semibold bg-primary-500 text-white hover:bg-primary-600 shadow-sm transition-all">Save Changes</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <script>
+        // Theme initialization
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
@@ -247,27 +291,27 @@
 
                 if (!data.success) {
                     pendingCountEl.innerText = '0';
-                    tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-red-500">Error loading requests</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-red-500 font-medium">Error loading requests</td></tr>`;
                     return;
                 }
 
                 pendingCountEl.innerText = data.pendingAdmins.length;
                 if (data.pendingAdmins.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-gray-500 italic">No pending registrations at the moment.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-gray-500 dark:text-gray-400 italic">No pending registrations at the moment.</td></tr>`;
                     return;
                 }
 
                 tbody.innerHTML = data.pendingAdmins.map(admin => `
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition">
-                        <td class="py-4 px-4 text-gray-900 dark:text-gray-200 font-medium">${admin.fullName}</td>
-                        <td class="py-4 px-4 text-gray-500 dark:text-gray-400">${admin.email}</td>
-                        <td class="py-4 px-4 text-themePrimary dark:text-blue-400 font-semibold">${admin.collegeName}</td>
-                        <td class="py-4 px-4 text-right space-x-2">
-                            <button onclick="approveAdmin(${admin.id}, '${admin.collegeName.replace(/'/g, "\\'")}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm transition shadow-sm">
-                                <i class="fas fa-check"></i> Approve
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                        <td class="py-4 px-6 text-gray-900 dark:text-gray-100 font-medium">${admin.fullName}</td>
+                        <td class="py-4 px-6 text-gray-500 dark:text-gray-400 text-sm">${admin.email}</td>
+                        <td class="py-4 px-6 text-primary-500 dark:text-primary-300 font-semibold text-sm">${admin.collegeName}</td>
+                        <td class="py-4 px-6 text-right space-x-2">
+                            <button onclick="approveAdmin(${admin.id}, '${admin.collegeName.replace(/'/g, "\\'")}')" class="bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50 px-3 py-1.5 rounded-lg text-sm font-medium transition shadow-sm border border-green-200 dark:border-green-800">
+                                <i class="fas fa-check mr-1"></i> Approve
                             </button>
-                            <button onclick="rejectAdmin(${admin.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm transition shadow-sm">
-                                <i class="fas fa-times"></i> Reject
+                            <button onclick="rejectAdmin(${admin.id})" class="bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 px-3 py-1.5 rounded-lg text-sm font-medium transition shadow-sm border border-red-200 dark:border-red-800">
+                                <i class="fas fa-times mr-1"></i> Reject
                             </button>
                         </td>
                     </tr>
@@ -275,7 +319,7 @@
             } catch (error) {
                 console.error("Error fetching pending admins:", error);
                 pendingCountEl.innerText = '0';
-                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-red-500">Failed to connect to server.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-red-500 font-medium">Failed to connect to server.</td></tr>`;
             }
         }
 
@@ -284,18 +328,27 @@
             try {
                 const response = await fetch(`/superadmin/api/approve-admin/${adminId}`, { method: 'POST' });
                 const data = await response.json();
-                if (data.success) {
-                    await fetch('/superadmin/api/colleges', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: collegeName })
-                    });
-                    alert('College registration approved successfully!');
-                    fetchPendingAdmins();
-                    loadColleges();
-                } else {
+                if (!data.success) {
                     alert('Error: ' + (data.error || data.message));
+                    return;
                 }
+
+                const collegeResponse = await fetch('/superadmin/api/colleges', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: collegeName })
+                });
+                const collegeData = await collegeResponse.json();
+
+                if (!collegeResponse.ok || !collegeData.success) {
+                    const message = collegeData.error || collegeData.message || 'Unable to add or update college.';
+                    alert(`Admin approved, but college registration could not be saved: ${message}`);
+                } else {
+                    alert('College registration approved successfully!');
+                }
+
+                fetchPendingAdmins();
+                loadColleges();
             } catch (error) {
                 console.error('Approval error:', error);
                 alert('Failed to approve request.');
@@ -332,28 +385,28 @@
                 tableBody.innerHTML = '';
 
                 if (colleges.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-gray-500 italic">No colleges registered yet.</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-gray-500 dark:text-gray-400 italic">No colleges registered yet.</td></tr>`;
                     return;
                 }
 
                 colleges.forEach((college) => {
                     const row = document.createElement('tr');
-                    row.className = 'hover:bg-gray-50 dark:hover:bg-gray-800/20 transition';
+                    row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700/50 transition';
                     row.innerHTML = `
-                        <td class="py-4 px-4 text-gray-500 dark:text-gray-400 font-mono">#${college.id}</td>
-                        <td class="py-4 px-4 font-medium text-gray-900 dark:text-white">${college.name}</td>
-                        <td class="py-4 px-4 text-gray-500 dark:text-gray-400">${college.collegeAdmin || college.adminNames || 'Not Assigned'}</td>
-                        <td class="py-4 px-4 text-center">
-                            <span class="bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                        <td class="py-4 px-6 text-gray-500 dark:text-gray-400 font-mono text-sm">#${college.id}</td>
+                        <td class="py-4 px-6 font-medium text-gray-900 dark:text-gray-100">${college.name}</td>
+                        <td class="py-4 px-6 text-gray-500 dark:text-gray-400 text-sm">${college.collegeAdmin || college.adminNames || 'Not Assigned'}</td>
+                        <td class="py-4 px-6 text-center">
+                            <span class="bg-green-50 text-green-700 border border-green-200 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                                 ${college.status || 'Active'}
                             </span>
                         </td>
-                        <td class="py-4 px-4 text-right space-x-2">
-                            <a href="/college/admin/dashboard?college=${encodeURIComponent(college.name)}" class="text-blue-500 hover:text-blue-700 transition bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg" title="Manage College Dashboard">
-                                <i class="fas fa-external-link-alt"></i> Manage
+                        <td class="py-4 px-6 text-right space-x-2">
+                            <a href="/college/admin/dashboard?college=${encodeURIComponent(college.name)}" class="inline-block text-primary-500 hover:text-primary-700 transition bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/20 dark:hover:bg-primary-900/40 border border-primary-100 dark:border-primary-800 px-3 py-1.5 rounded-lg text-sm font-medium" title="Manage College Dashboard">
+                                <i class="fas fa-external-link-alt mr-1"></i> Manage
                             </a>
-                            <button onclick="deleteCollege(${college.id})" class="text-red-500 hover:text-red-700 transition bg-red-50 dark:bg-red-900/20 p-2 rounded-lg" title="Remove College">
-                                <i class="fas fa-trash-alt"></i> Remove
+                            <button onclick="deleteCollege(${college.id})" class="inline-block text-red-500 hover:text-red-700 transition bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 border border-red-100 dark:border-red-800 px-3 py-1.5 rounded-lg text-sm font-medium" title="Remove College">
+                                <i class="fas fa-trash-alt mr-1"></i> Remove
                             </button>
                         </td>
                     `;
@@ -362,7 +415,7 @@
             } catch (error) {
                 console.error('Fetch error:', error);
                 totalCollegesEl.innerText = 'Error';
-                tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-red-500">Failed to load data. Ensure you are logged in as Superadmin.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-red-500 font-medium">Failed to load data. Ensure you are logged in as Superadmin.</td></tr>`;
             }
         }
 
