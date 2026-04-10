@@ -137,9 +137,9 @@
             <div class="h-10 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-3 bg-gray-50 dark:bg-gray-800">
                 <div class="flex items-center gap-2">
                     <select id="languageSelect" class="bg-transparent text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary-500">
+                        <option value="python" selected>Python 3</option>
                         <option value="cpp">C++ (G++ 17)</option>
                         <option value="java">Java 17</option>
-                        <option value="python">Python 3</option>
                         <option value="c">C</option>
                     </select>
                 </div>
@@ -172,8 +172,8 @@
                         nums = [2,7,11,15], target = 9
                     </div>
                     <div class="mb-2 text-gray-500">Output:</div>
-                    <div id="outputBox" class="bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-                        [0,1]
+                    <div id="outputBox" class="bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400">
+                        Run code to see output.
                     </div>
                 </div>
             </div>
@@ -227,7 +227,9 @@
             const last = Number(parts[parts.length - 1]);
             if (Number.isInteger(last) && last > 0) return last;
             const fromQuery = Number(new URLSearchParams(window.location.search).get('id'));
-            return Number.isInteger(fromQuery) && fromQuery > 0 ? fromQuery : null;
+            if (Number.isInteger(fromQuery) && fromQuery > 0) return fromQuery;
+            const fromStorage = Number(localStorage.getItem('individual_last_problem_id'));
+            return Number.isInteger(fromStorage) && fromStorage > 0 ? fromStorage : null;
         };
 
         const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -249,19 +251,31 @@
                 ${problem.constraints ? `<h3 class="text-sm font-bold uppercase text-gray-500 dark:text-gray-400 mb-2">Constraints</h3><p class="mb-4">${esc(problem.constraints)}</p>` : ''}
             `;
             sampleInput.textContent = problem.sample_input || '';
-            outputBox.textContent = problem.sample_output || '';
+            outputBox.className = 'bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400';
+            outputBox.textContent = 'Run code to see output.';
         }
 
         async function loadProblem() {
             currentProblemId = getProblemId();
             if (!currentProblemId) {
                 document.getElementById('problemDescription').innerHTML = '<p class="text-red-500">Invalid problem id.</p>';
+                const runTop = document.getElementById('runBtnTop');
+                const runBottom = document.getElementById('runBtnBottom');
+                const submitBtn = document.getElementById('submitBtn');
+                if (runTop) runTop.disabled = true;
+                if (runBottom) runBottom.disabled = true;
+                if (submitBtn) submitBtn.disabled = true;
+                const out = document.getElementById('outputBox');
+                out.className = 'bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-red-500 dark:text-red-400';
+                out.textContent = 'Open this page from Problems list to load a valid problem.';
                 return;
             }
+            localStorage.setItem('individual_last_problem_id', String(currentProblemId));
             const res = await fetch(`/api/problems/${currentProblemId}`);
             const data = await res.json();
             if (!data.success) throw new Error(data.message || 'Problem not found');
             renderProblem(data.problem);
+            document.getElementById('languageSelect').value = 'python';
             document.getElementById('codeEditor').value = defaultSnippets.python;
             await loadSubmissionCount();
         }
@@ -275,7 +289,12 @@
         }
 
         async function runCode(buttonEl) {
-            if (!currentProblemId) return;
+            if (!currentProblemId) {
+                const out = document.getElementById('outputBox');
+                out.className = 'bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-red-500 dark:text-red-400';
+                out.textContent = 'No problem loaded.';
+                return;
+            }
             const btn = buttonEl || document.getElementById('runBtnBottom');
             if (!btn) return;
             const old = btn.innerHTML;
@@ -293,9 +312,13 @@
                 });
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok || !data.success) {
-                    document.getElementById('outputBox').textContent = `Run failed: ${data.message || data.error || `HTTP ${res.status}`}`;
+                    const out = document.getElementById('outputBox');
+                    out.className = 'bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-red-500 dark:text-red-400';
+                    out.textContent = `Run failed: ${data.message || data.error || `HTTP ${res.status}`}`;
                 } else {
-                    document.getElementById('outputBox').textContent = data.output || data.stderr || 'No output';
+                    const out = document.getElementById('outputBox');
+                    out.className = 'bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300';
+                    out.textContent = data.output || data.stderr || 'No output';
                 }
             } finally {
                 btn.disabled = false;
@@ -343,11 +366,20 @@
         document.getElementById('languageSelect').addEventListener('change', (e) => {
             const lang = e.target.value;
             const editor = document.getElementById('codeEditor');
-            if (!editor.value.trim()) editor.value = defaultSnippets[lang] || defaultSnippets.python;
+            const currentCode = editor.value;
+            const isDefaultSnippet = Object.values(defaultSnippets).includes(currentCode);
+            if (!currentCode.trim() || isDefaultSnippet) {
+                editor.value = defaultSnippets[lang] || defaultSnippets.python;
+            }
         });
 
         async function submitCode() {
-            if (!currentProblemId) return;
+            if (!currentProblemId) {
+                const out = document.getElementById('outputBox');
+                out.className = 'bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-red-500 dark:text-red-400';
+                out.textContent = 'No problem loaded.';
+                return;
+            }
             const btn = document.getElementById('submitBtn');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Pending...';
@@ -365,13 +397,19 @@
                 const data = await res.json().catch(() => ({}));
                 if (data.success && data.status === 'accepted') {
                     document.getElementById('successModal').classList.remove('hidden');
-                    document.getElementById('outputBox').textContent = `Accepted (${data.passed}/${data.total})`;
+                    const out = document.getElementById('outputBox');
+                    out.className = 'bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-green-600 dark:text-green-400';
+                    out.textContent = `Accepted (${data.passed}/${data.total})`;
                 } else {
-                    document.getElementById('outputBox').textContent = `Submit failed: ${data.message || data.error || `HTTP ${res.status}`}`;
+                    const out = document.getElementById('outputBox');
+                    out.className = 'bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-red-500 dark:text-red-400';
+                    out.textContent = `Submit failed: ${data.message || data.error || `HTTP ${res.status}`}`;
                 }
                 await loadSubmissionCount();
             } catch (e) {
-                document.getElementById('outputBox').textContent = `Submit error: ${e.message}`;
+                const out = document.getElementById('outputBox');
+                out.className = 'bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-red-500 dark:text-red-400';
+                out.textContent = `Submit error: ${e.message}`;
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;

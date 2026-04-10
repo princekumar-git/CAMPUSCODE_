@@ -32,6 +32,7 @@ module.exports = (db) => {
     router.get('/contest.html', requireIndividual, (req, res) => res.redirect('/individual/contest'));
     router.get('/contest/:id', requireIndividual, serve('contest-details.html'));
     router.get('/contest-details.html', requireIndividual, serve('contest-details.html'));
+    router.get('/contest/problems.html', requireIndividual, serve('contest-details.html'));
 
     router.get('/forum', requireIndividual, serve('forum.html'));
     router.get('/forum.html', requireIndividual, (req, res) => res.redirect('/individual/forum'));

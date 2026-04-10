@@ -122,6 +122,19 @@ function getNavConfig(roleValue) {
                 { href: '/student/profile', icon: 'fas fa-user', label: 'Profile', key: 'profile' }
             ]
         },
+        individual: {
+            dashboard: '/individual/dashboard',
+            label: 'Individual',
+            items: [
+                { href: '/individual/dashboard', icon: 'fas fa-home', label: 'Home', key: 'dashboard' },
+                { href: '/individual/problems', icon: 'fas fa-tasks', label: 'Problems', key: 'problems' },
+                { href: '/individual/contest', icon: 'fas fa-trophy', label: 'Contests', key: 'contests' },
+                { href: '/individual/forum', icon: 'fas fa-comments', label: 'Community', key: 'community' },
+                { href: '/individual/stats', icon: 'fas fa-list', label: 'Stats', key: 'stats' },
+                { href: '/individual/report', icon: 'fas fa-chart-pie', label: 'Report', key: 'report' },
+                { href: '/individual/profile', icon: 'fas fa-user', label: 'Profile', key: 'profile' }
+            ]
+        },
         faculty: {
             dashboard: '/faculty/dashboard',
             label: 'Faculty',
@@ -220,6 +233,9 @@ function applyUserShell() {
     if (profileLink) {
         if (normalizedRole === 'student') {
             profileLink.href = '/student/profile';
+        } else if (normalizedRole === 'individual') {
+            profileLink.href = '/individual/profile';
+            profileLink.classList.remove('hidden');
         } else {
             profileLink.classList.add('hidden');
         }

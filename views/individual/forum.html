@@ -107,7 +107,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <i class="fas fa-search text-gray-400"></i>
                 </div>
-                <input type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500" placeholder="Search..." />
+                <input id="headerSearchInput" type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500" placeholder="Search..." />
               </div>
             </div>
             <div class="ml-4 flex items-center gap-3">
@@ -121,8 +121,8 @@
                 </button>
               </div>
               <button id="headerProfileBtn" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                    <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">JD</div>
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">John Doe</span>
+                    <div id="headerProfileInitials" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">JD</div>
+                    <span id="headerProfileName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">John Doe</span>
               </button>
             </div>
           </div>
@@ -132,7 +132,7 @@
             <h1 class="text-2xl font-bold text-primary-600 dark:text-white">
               Community Forum
             </h1>
-            <a href="new-post.html" class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm flex items-center">
+            <a href="/forum/create.html" class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm flex items-center">
                 <i class="fas fa-plus mr-2"></i> New Post
             </a>
           </div>
@@ -143,16 +143,16 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <i class="fas fa-search text-primary-300 dark:text-gray-500"></i>
                 </div>
-                <input type="text" class="block w-full pl-10 pr-3 py-2 border border-primary-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400" placeholder="Search discussions..." />
+                <input id="forumSearchInput" type="text" class="block w-full pl-10 pr-3 py-2 border border-primary-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400" placeholder="Search discussions..." />
               </div>
               <div class="flex space-x-3">
-                <select class="border border-primary-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-primary-600 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-400">
+                <select id="forumFilterSelect" class="border border-primary-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-primary-600 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-400">
                   <option>All Topics</option>
                   <option>Most Recent</option>
                   <option>Most Active</option>
                   <option>Unanswered</option>
                 </select>
-                <button class="px-4 py-2 bg-primary-50 dark:bg-gray-700 text-primary-600 dark:text-gray-200 rounded-lg hover:bg-primary-100 dark:hover:bg-gray-600 transition-colors border border-transparent dark:border-gray-600">
+                <button id="forumScopeBtn" class="px-4 py-2 bg-primary-50 dark:bg-gray-700 text-primary-600 dark:text-gray-200 rounded-lg hover:bg-primary-100 dark:hover:bg-gray-600 transition-colors border border-transparent dark:border-gray-600">
                   <i class="fas fa-filter mr-2"></i>Filters
                 </button>
               </div>
@@ -161,7 +161,7 @@
 
           <div class="mb-8">
             <h2 class="text-xl font-semibold text-primary-600 dark:text-white mb-4">Browse by Topic</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div id="topicsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div class="topic-card bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-primary-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer">
                 <div class="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
                   <i class="fas fa-code text-blue-500 dark:text-blue-400 text-xl topic-icon transition-transform"></i>
@@ -169,7 +169,7 @@
                 <h3 class="font-semibold text-primary-700 dark:text-gray-200 mb-2">Web Development</h3>
                 <p class="text-sm text-primary-500 dark:text-gray-400">HTML, CSS, JavaScript, Frameworks</p>
                 <div class="mt-3 text-xs text-primary-400 dark:text-gray-500">
-                  <span>1,245 discussions</span><span class="mx-2">•</span><span>342 active</span>
+                  <span>1,245 discussions</span><span class="mx-2">â€¢</span><span>342 active</span>
                 </div>
               </div>
 
@@ -180,7 +180,7 @@
                 <h3 class="font-semibold text-primary-700 dark:text-gray-200 mb-2">Backend</h3>
                 <p class="text-sm text-primary-500 dark:text-gray-400">Node.js, Python, Java, Databases</p>
                 <div class="mt-3 text-xs text-primary-400 dark:text-gray-500">
-                  <span>856 discussions</span><span class="mx-2">•</span><span>201 active</span>
+                  <span>856 discussions</span><span class="mx-2">â€¢</span><span>201 active</span>
                 </div>
               </div>
 
@@ -191,7 +191,7 @@
                 <h3 class="font-semibold text-primary-700 dark:text-gray-200 mb-2">Mobile Development</h3>
                 <p class="text-sm text-primary-500 dark:text-gray-400">iOS, Android, React Native, Flutter</p>
                 <div class="mt-3 text-xs text-primary-400 dark:text-gray-500">
-                  <span>723 discussions</span><span class="mx-2">•</span><span>189 active</span>
+                  <span>723 discussions</span><span class="mx-2">â€¢</span><span>189 active</span>
                 </div>
               </div>
 
@@ -202,7 +202,7 @@
                 <h3 class="font-semibold text-primary-700 dark:text-gray-200 mb-2">Algorithms</h3>
                 <p class="text-sm text-primary-500 dark:text-gray-400">Data Structures, Problem Solving</p>
                 <div class="mt-3 text-xs text-primary-400 dark:text-gray-500">
-                  <span>1,532 discussions</span><span class="mx-2">•</span><span>421 active</span>
+                  <span>1,532 discussions</span><span class="mx-2">â€¢</span><span>421 active</span>
                 </div>
               </div>
             </div>
@@ -213,7 +213,7 @@
               <h2 class="text-xl font-semibold text-primary-600 dark:text-white">Recent Discussions</h2>
               <div class="flex items-center space-x-2">
                 <span class="text-sm text-primary-500 dark:text-gray-400">Sort by:</span>
-                <select class="border-0 bg-transparent text-primary-600 dark:text-blue-400 font-medium focus:ring-0 focus:outline-none text-sm dark:bg-gray-900 cursor-pointer">
+                <select id="forumSortSelect" class="border-0 bg-transparent text-primary-600 dark:text-blue-400 font-medium focus:ring-0 focus:outline-none text-sm dark:bg-gray-900 cursor-pointer">
                   <option>Most Recent</option>
                   <option>Most Viewed</option>
                   <option>Most Comments</option>
@@ -221,7 +221,7 @@
               </div>
             </div>
 
-            <div class="space-y-4">
+            <div id="threadsContainer" class="space-y-4">
               <div class="post-card bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-primary-100 dark:border-gray-700 hover:shadow-md transition-all">
                 <div class="p-6">
                   <div class="flex flex-col md:flex-row md:items-start">
@@ -307,22 +307,22 @@
                 </div>
             </div>
             <div class="pt-14 pb-6 px-6 text-center">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">John Doe</h2>
+                <h2 id="overlayName" class="text-xl font-bold text-gray-900 dark:text-white">John Doe</h2>
                 <div class="flex flex-col items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    <span>ID: CS2025_001</span>
+                    <span id="overlayMeta">ID: CS2025_001</span>
                 </div>
                 <div class="flex justify-between mt-6 px-2">
                     <div class="text-center">
                         <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Solved</div>
-                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">124</div>
+                        <div id="overlaySolved" class="text-xl font-bold text-gray-900 dark:text-white mt-1">124</div>
                     </div>
                     <div class="text-center border-l border-r border-gray-100 dark:border-gray-700 px-4">
                         <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Rank</div>
-                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">42</div>
+                        <div id="overlayRank" class="text-xl font-bold text-gray-900 dark:text-white mt-1">42</div>
                     </div>
                     <div class="text-center">
                         <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Points</div>
-                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">1.2k</div>
+                        <div id="overlayPoints" class="text-xl font-bold text-gray-900 dark:text-white mt-1">1.2k</div>
                     </div>
                 </div>
                 <div class="h-px bg-gray-100 dark:bg-gray-700 my-6"></div>
@@ -392,9 +392,19 @@
         </div>
     </div>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        
+        <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        const state = {
+          user: null,
+          threads: [],
+          topics: [],
+          selectedTopic: 'all',
+          scope: 'global',
+          search: '',
+          sortApi: 'latest',
+          listingMode: 'all'
+        };
+
         // --- 1. SIDEBAR TOGGLE LOGIC ---
         const sidebar = document.getElementById('mainSidebar');
         const toggleBtn = document.getElementById('sidebarToggleBtn');
@@ -403,161 +413,360 @@
         const headerLogoText = document.getElementById('headerLogoText');
 
         if (toggleBtn && sidebar) {
-            toggleBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('collapsed');
-
-                if (sidebar.classList.contains('collapsed')) {
-                    // Collapse Logic
-                    sidebar.classList.replace('w-64', 'w-20');
-                    if(toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
-                    
-                    if(sidebarLogoText) {
-                        sidebarLogoText.style.opacity = '0';
-                        sidebarLogoText.style.width = '0px';
-                    }
-                    if(headerLogoText) {
-                        headerLogoText.classList.remove('hidden');
-                        setTimeout(() => { headerLogoText.classList.remove('opacity-0', '-translate-x-2'); }, 50);
-                    }
-                } else {
-                    // Expand Logic
-                    sidebar.classList.replace('w-20', 'w-64');
-                    if(toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
-                    
-                    if(sidebarLogoText) {
-                        sidebarLogoText.style.opacity = '1';
-                        sidebarLogoText.style.width = 'auto';
-                    }
-                    if(headerLogoText) {
-                        headerLogoText.classList.add('opacity-0', '-translate-x-2');
-                        setTimeout(() => { headerLogoText.classList.add('hidden'); }, 300);
-                    }
-                }
-            });
+          toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+              sidebar.classList.replace('w-64', 'w-20');
+              if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
+              if (sidebarLogoText) {
+                sidebarLogoText.style.opacity = '0';
+                sidebarLogoText.style.width = '0px';
+              }
+              if (headerLogoText) {
+                headerLogoText.classList.remove('hidden');
+                setTimeout(() => headerLogoText.classList.remove('opacity-0', '-translate-x-2'), 50);
+              }
+            } else {
+              sidebar.classList.replace('w-20', 'w-64');
+              if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
+              if (sidebarLogoText) {
+                sidebarLogoText.style.opacity = '1';
+                sidebarLogoText.style.width = 'auto';
+              }
+              if (headerLogoText) {
+                headerLogoText.classList.add('opacity-0', '-translate-x-2');
+                setTimeout(() => headerLogoText.classList.add('hidden'), 300);
+              }
+            }
+          });
         }
 
-        // --- 2. SETTINGS, THEME & ACCORDION LOGIC ---
-        const settingsTrigger = document.getElementById('settingsTrigger');
-        const settingsMenu = document.getElementById('settingsMenu');
-        const themeAccordionBtn = document.getElementById('themeAccordionBtn');
-        const themeOptionsContainer = document.getElementById('themeOptionsContainer');
-        const themeChevron = document.getElementById('themeChevron');
+        // --- 2. THEME LOGIC ---
         const themeOptions = document.querySelectorAll('.theme-option');
         const headerThemeBtn = document.getElementById('themeToggleBtn');
         const headerThemeIcon = headerThemeBtn ? headerThemeBtn.querySelector('i') : null;
 
         function applyTheme(themeName) {
-            const html = document.documentElement;
-            if (themeName === 'dark') {
-                html.classList.add('dark'); localStorage.theme = 'dark';
-            } else if (themeName === 'light') {
-                html.classList.remove('dark'); localStorage.theme = 'light';
-            } else {
-                localStorage.removeItem('theme');
-                if (window.matchMedia('(prefers-color-scheme: dark)').matches) html.classList.add('dark');
-                else html.classList.remove('dark');
-            }
-            
-            if (headerThemeIcon) {
-                if (html.classList.contains('dark')) headerThemeIcon.classList.replace('fa-moon', 'fa-sun');
-                else headerThemeIcon.classList.replace('fa-sun', 'fa-moon');
-            }
+          const html = document.documentElement;
+          if (themeName === 'dark') {
+            html.classList.add('dark');
+            localStorage.theme = 'dark';
+          } else if (themeName === 'light') {
+            html.classList.remove('dark');
+            localStorage.theme = 'light';
+          } else {
+            localStorage.removeItem('theme');
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) html.classList.add('dark');
+            else html.classList.remove('dark');
+          }
 
-            themeOptions.forEach(btn => {
-                const checkIcon = btn.querySelector('.check-icon');
-                const isSelected = btn.getAttribute('data-value') === themeName;
-                if (isSelected) {
-                    btn.classList.add('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-600', 'dark:text-primary-400');
-                    checkIcon.classList.remove('opacity-0');
-                } else {
-                    btn.classList.remove('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-600', 'dark:text-primary-400');
-                    checkIcon.classList.add('opacity-0');
-                }
-            });
+          if (headerThemeIcon) {
+            headerThemeIcon.classList.remove('fa-moon', 'fa-sun');
+            headerThemeIcon.classList.add(html.classList.contains('dark') ? 'fa-sun' : 'fa-moon');
+          }
+
+          themeOptions.forEach(btn => {
+            const checkIcon = btn.querySelector('.check-icon');
+            const isSelected = btn.getAttribute('data-value') === themeName;
+            btn.classList.toggle('bg-primary-50', isSelected);
+            btn.classList.toggle('dark:bg-primary-900/20', isSelected);
+            btn.classList.toggle('text-primary-600', isSelected);
+            btn.classList.toggle('dark:text-primary-400', isSelected);
+            if (checkIcon) checkIcon.classList.toggle('opacity-0', !isSelected);
+          });
         }
 
-        // Settings Toggle
-        if (settingsTrigger && settingsMenu) {
-            settingsTrigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                settingsMenu.classList.toggle('hidden');
-                if (sidebar && sidebar.classList.contains('collapsed')) settingsMenu.style.left = '80px';
-                else settingsMenu.style.left = '16px';
-            });
-            document.addEventListener('click', (e) => {
-                if (!settingsMenu.contains(e.target) && !settingsTrigger.contains(e.target)) settingsMenu.classList.add('hidden');
-            });
-        }
-
-        // Theme Accordion
-        if (themeAccordionBtn && themeOptionsContainer) {
-            themeAccordionBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                themeOptionsContainer.classList.toggle('hidden');
-                themeChevron.style.transform = themeOptionsContainer.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';
-            });
-        }
-
-        // Theme Select
         themeOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                e.stopPropagation();
-                applyTheme(option.getAttribute('data-value'));
-            });
+          option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            applyTheme(option.getAttribute('data-value'));
+          });
         });
 
-        // Header Quick Toggle
         if (headerThemeBtn) {
-            headerThemeBtn.addEventListener('click', () => {
-                const isDark = document.documentElement.classList.contains('dark');
-                applyTheme(isDark ? 'light' : 'dark');
-            });
+          headerThemeBtn.addEventListener('click', () => {
+            applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark');
+          });
         }
 
-        // Initialize Theme
         applyTheme(localStorage.theme || 'system');
-
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (!localStorage.theme) applyTheme('system');
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+          if (!localStorage.theme) applyTheme('system');
         });
 
-        // --- 3. OVERLAYS & NOTIFICATIONS ---
+        // --- 3. MENUS/OVERLAYS ---
+        const settingsTrigger = document.getElementById('settingsTrigger');
+        const settingsMenu = document.getElementById('settingsMenu');
+        const themeAccordionBtn = document.getElementById('themeAccordionBtn');
+        const themeOptionsContainer = document.getElementById('themeOptionsContainer');
+        const themeChevron = document.getElementById('themeChevron');
+
+        if (settingsTrigger && settingsMenu) {
+          settingsTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsMenu.classList.toggle('hidden');
+            settingsMenu.style.left = (sidebar && sidebar.classList.contains('collapsed')) ? '80px' : '16px';
+          });
+          document.addEventListener('click', (e) => {
+            if (!settingsMenu.contains(e.target) && !settingsTrigger.contains(e.target)) settingsMenu.classList.add('hidden');
+          });
+        }
+
+        if (themeAccordionBtn && themeOptionsContainer && themeChevron) {
+          themeAccordionBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themeOptionsContainer.classList.toggle('hidden');
+            themeChevron.style.transform = themeOptionsContainer.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';
+          });
+        }
+
         const overlay = document.getElementById("profileOverlay");
         const headerProfileBtn = document.getElementById("headerProfileBtn");
         const closeBtn = document.getElementById("closeProfileOverlay");
-        if(headerProfileBtn && overlay) headerProfileBtn.addEventListener("click", () => overlay.classList.remove("hidden"));
-        if(closeBtn && overlay) closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
-        if(overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.add("hidden"); });
+        if (headerProfileBtn && overlay) headerProfileBtn.addEventListener("click", () => overlay.classList.remove("hidden"));
+        if (closeBtn && overlay) closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
+        if (overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.add("hidden"); });
 
         const notifBtn = document.getElementById('notificationBtn');
         const notifDropdown = document.getElementById('notificationDropdown');
         if (notifBtn && notifDropdown) {
-            notifBtn.addEventListener('click', (e) => { e.stopPropagation(); notifDropdown.classList.toggle('hidden'); });
-            document.addEventListener('click', (e) => {
-                if(!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) notifDropdown.classList.add('hidden');
-            });
-        }
-         if(overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.add("hidden"); });
-
-    // *** PASTE LOGOUT LOGIC HERE ***
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            window.location.href = '../../index.html';
-        });
-    }
-
-        // --- 4. Topic Cards Interactivity ---
-        const topicCards = document.querySelectorAll(".topic-card");
-        topicCards.forEach((card) => {
-          card.addEventListener("click", () => {
-            topicCards.forEach((c) =>
-              c.classList.remove("ring-2", "ring-primary-400")
-            );
-            card.classList.add("ring-2", "ring-primary-400");
+          notifBtn.addEventListener('click', (e) => { e.stopPropagation(); notifDropdown.classList.toggle('hidden'); });
+          document.addEventListener('click', (e) => {
+            if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) notifDropdown.classList.add('hidden');
           });
-        });
+        }
 
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) logoutBtn.addEventListener('click', () => window.location.href = '/auth/logout');
+
+        // --- 4. API WIRING ---
+        const headerSearchInput = document.getElementById('headerSearchInput');
+        const forumSearchInput = document.getElementById('forumSearchInput');
+        const forumFilterSelect = document.getElementById('forumFilterSelect');
+        const forumScopeBtn = document.getElementById('forumScopeBtn');
+        const forumSortSelect = document.getElementById('forumSortSelect');
+        const topicsGrid = document.getElementById('topicsGrid');
+        const threadsContainer = document.getElementById('threadsContainer');
+
+        function escapeHtml(text) {
+          return String(text || '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+        }
+
+        function topicClassByIndex(i) {
+          const list = [
+            { box: 'bg-blue-100 dark:bg-blue-900/30', icon: 'text-blue-500 dark:text-blue-400', iconName: 'fas fa-code' },
+            { box: 'bg-green-100 dark:bg-green-900/30', icon: 'text-green-500 dark:text-green-400', iconName: 'fas fa-server' },
+            { box: 'bg-purple-100 dark:bg-purple-900/30', icon: 'text-purple-500 dark:text-purple-400', iconName: 'fas fa-mobile-alt' },
+            { box: 'bg-yellow-100 dark:bg-yellow-900/30', icon: 'text-yellow-500 dark:text-yellow-400', iconName: 'fas fa-brain' }
+          ];
+          return list[i % list.length];
+        }
+
+        function normalizeTopic(topic) {
+          return String(topic || 'general').toLowerCase();
+        }
+
+        function applyUser(data) {
+          state.user = data || {};
+          const fullName = state.user.fullName || 'User';
+          const initials = fullName.split(' ').filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase() || 'U';
+          const solved = Number(state.user.problems_solved || state.user.solvedCount || 0);
+          const points = Number(state.user.xp || state.user.points || 0);
+          const rank = state.user.global_rank || state.user.rank || '#-';
+
+          const headerInitials = document.getElementById('headerProfileInitials');
+          const headerName = document.getElementById('headerProfileName');
+          const overlayInitials = document.getElementById('overlayInitials');
+          const overlayName = document.getElementById('overlayName');
+          const overlayMeta = document.getElementById('overlayMeta');
+          const overlaySolved = document.getElementById('overlaySolved');
+          const overlayRank = document.getElementById('overlayRank');
+          const overlayPoints = document.getElementById('overlayPoints');
+
+          if (headerInitials) headerInitials.textContent = initials;
+          if (headerName) headerName.textContent = fullName;
+          if (overlayInitials) overlayInitials.textContent = initials;
+          if (overlayName) overlayName.textContent = fullName;
+          if (overlayMeta) {
+            const email = state.user.email ? ` • ${state.user.email}` : '';
+            overlayMeta.textContent = `Independent${email}`;
+          }
+          if (overlaySolved) overlaySolved.textContent = String(solved);
+          if (overlayRank) overlayRank.textContent = String(rank).startsWith('#') ? rank : `#${rank}`;
+          if (overlayPoints) overlayPoints.textContent = String(points);
+        }
+
+        function renderTopics() {
+          if (!topicsGrid) return;
+          const counts = {};
+          state.threads.forEach(t => {
+            const k = normalizeTopic(t.topic);
+            counts[k] = (counts[k] || 0) + 1;
+          });
+
+          const topicCards = [{ slug: 'all', name: 'All Topics', icon: 'fas fa-layer-group' }, ...(state.topics || []).map(t => ({ slug: normalizeTopic(t.slug || t.name), name: t.name || t.slug, icon: t.icon || 'fas fa-hashtag' }))];
+
+          topicsGrid.innerHTML = topicCards.map((t, i) => {
+            const cls = topicClassByIndex(i);
+            const selected = state.selectedTopic === t.slug;
+            const count = t.slug === 'all' ? state.threads.length : (counts[t.slug] || 0);
+            return `
+              <div class="topic-card bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-primary-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer ${selected ? 'ring-2 ring-primary-400' : ''}" data-topic="${escapeHtml(t.slug)}">
+                <div class="w-12 h-12 rounded-lg ${cls.box} flex items-center justify-center mb-4">
+                  <i class="${escapeHtml(t.icon || cls.iconName)} ${cls.icon} text-xl topic-icon transition-transform"></i>
+                </div>
+                <h3 class="font-semibold text-primary-700 dark:text-gray-200 mb-2">${escapeHtml(t.name)}</h3>
+                <p class="text-sm text-primary-500 dark:text-gray-400">Community discussion topic</p>
+                <div class="mt-3 text-xs text-primary-400 dark:text-gray-500">
+                  <span>${count} discussions</span>
+                </div>
+              </div>`;
+          }).join('');
+
+          topicsGrid.querySelectorAll('.topic-card').forEach(card => {
+            card.addEventListener('click', () => {
+              state.selectedTopic = card.dataset.topic || 'all';
+              renderTopics();
+              renderThreads();
+            });
+          });
+        }
+
+        function filteredThreads() {
+          let list = [...state.threads];
+          if (state.selectedTopic !== 'all') {
+            list = list.filter(t => normalizeTopic(t.topic) === state.selectedTopic);
+          }
+          if (state.listingMode === 'unanswered') {
+            list = list.filter(t => Number(t.reply_count || 0) === 0);
+          }
+          if (state.listingMode === 'active') {
+            list = list.sort((a, b) => Number(b.reply_count || 0) - Number(a.reply_count || 0));
+          }
+          if (state.listingMode === 'recent') {
+            list = list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          }
+          return list;
+        }
+
+        function renderThreads() {
+          if (!threadsContainer) return;
+          const list = filteredThreads();
+          if (!list.length) {
+            threadsContainer.innerHTML = `<div class="post-card bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-primary-100 dark:border-gray-700"><div class="p-6 text-primary-500 dark:text-gray-400">No discussions found.</div></div>`;
+            return;
+          }
+
+          threadsContainer.innerHTML = list.map(t => {
+            const topic = normalizeTopic(t.topic);
+            const badgeClass = topic.includes('algo') ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300' : topic.includes('web') ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
+            return `
+              <div class="post-card bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-primary-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer" data-thread-id="${t.id}">
+                <div class="p-6">
+                  <div class="flex flex-col md:flex-row md:items-start">
+                    <div class="flex-1">
+                      <div class="flex items-center space-x-3 mb-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClass}">${escapeHtml(t.topic || 'general')}</span>
+                        <span class="text-sm text-primary-500 dark:text-gray-400"><i class="far fa-user mr-1"></i> ${escapeHtml(t.author_name || 'User')}</span>
+                        <span class="text-sm text-primary-400 dark:text-gray-500"><i class="far fa-clock mr-1"></i> ${new Date(t.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <h3 class="text-lg font-semibold text-primary-700 dark:text-gray-200 mb-2 hover:text-primary-500 dark:hover:text-blue-400">${escapeHtml(t.title)}</h3>
+                      <p class="text-primary-500 dark:text-gray-400 mb-4">${escapeHtml(t.content || '').slice(0, 220)}</p>
+                      <div class="flex flex-wrap gap-3 text-sm">
+                        <span class="flex items-center text-primary-500 dark:text-gray-400"><i class="far fa-comment-alt mr-1"></i> ${Number(t.reply_count || 0)} comments</span>
+                        <span class="flex items-center text-primary-500 dark:text-gray-400"><i class="far fa-eye mr-1"></i> ${Number(t.views || 0)} views</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>`;
+          }).join('');
+
+          threadsContainer.querySelectorAll('.post-card').forEach(card => {
+            card.addEventListener('click', () => {
+              const id = card.getAttribute('data-thread-id');
+              if (id) window.location.href = `/forum/thread.html?id=${id}`;
+            });
+          });
+        }
+
+        async function loadTopics() {
+          try {
+            const res = await fetch('/api/forum/topics');
+            const data = await res.json();
+            state.topics = data.success ? (data.topics || []) : [];
+          } catch {
+            state.topics = [];
+          }
+        }
+
+        async function loadThreads() {
+          const params = new URLSearchParams({ filter: state.scope, sort: state.sortApi, search: state.search || '' });
+          const res = await fetch(`/api/forum/threads?${params.toString()}`);
+          const data = await res.json();
+          state.threads = data.success ? (data.threads || []) : [];
+          renderTopics();
+          renderThreads();
+        }
+
+        async function loadUser() {
+          const res = await fetch('/api/forum/me');
+          const data = await res.json();
+          if (!data.success) {
+            window.location.href = '/';
+            return;
+          }
+          applyUser(data.user || {});
+        }
+
+        let debounceRef = null;
+        const bindSearchInput = (input) => {
+          if (!input) return;
+          input.addEventListener('input', () => {
+            clearTimeout(debounceRef);
+            debounceRef = setTimeout(async () => {
+              state.search = input.value.trim();
+              if (headerSearchInput && input !== headerSearchInput) headerSearchInput.value = input.value;
+              if (forumSearchInput && input !== forumSearchInput) forumSearchInput.value = input.value;
+              await loadThreads();
+            }, 250);
+          });
+        };
+
+        bindSearchInput(headerSearchInput);
+        bindSearchInput(forumSearchInput);
+
+        if (forumScopeBtn) {
+          forumScopeBtn.textContent = 'Global';
+          forumScopeBtn.addEventListener('click', async () => {
+            state.scope = state.scope === 'global' ? 'college' : 'global';
+            forumScopeBtn.innerHTML = `<i class="fas fa-filter mr-2"></i>${state.scope === 'global' ? 'Global' : 'College'}`;
+            await loadThreads();
+          });
+        }
+
+        if (forumSortSelect) {
+          forumSortSelect.addEventListener('change', async () => {
+            const val = String(forumSortSelect.value || '').toLowerCase();
+            state.sortApi = val.includes('view') || val.includes('comment') ? 'popular' : 'latest';
+            await loadThreads();
+          });
+        }
+
+        if (forumFilterSelect) {
+          forumFilterSelect.addEventListener('change', () => {
+            const val = String(forumFilterSelect.value || '').toLowerCase();
+            if (val.includes('unanswered')) state.listingMode = 'unanswered';
+            else if (val.includes('active')) state.listingMode = 'active';
+            else if (val.includes('recent')) state.listingMode = 'recent';
+            else state.listingMode = 'all';
+            renderThreads();
+          });
+        }
+
+        await loadUser();
+        await loadTopics();
+        await loadThreads();
       });
     </script>
   </body>

@@ -152,96 +152,23 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-search text-primary-300 dark:text-gray-500"></i>
                         </div>
-                        <input type="text" class="block w-full pl-10 pr-3 py-2 border border-primary-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400" placeholder="Search contests..." />
+                        <input id="contestSearchInput" type="text" class="block w-full pl-10 pr-3 py-2 border border-primary-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400" placeholder="Search contests..." />
                     </div>
                     <div class="flex space-x-3">
-                        <select class="border border-primary-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-primary-600 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer">
-                            <option>All Contests</option>
-                            <option>Ongoing</option>
-                            <option>Upcoming</option>
-                            <option>Past</option>
+                        <select id="contestStatusFilter" class="border border-primary-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-primary-600 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer">
+                            <option value="all">All Contests</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="past">Past</option>
                         </select>
-                        <select class="border border-primary-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-primary-600 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer">
-                            <option>Sort by: Newest</option>
-                            <option>Sort by: Oldest</option>
-                            <option>Sort by: Most Popular</option>
+                        <select id="contestSortFilter" class="border border-primary-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-primary-600 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer">
+                            <option value="newest">Sort by: Newest</option>
+                            <option value="oldest">Sort by: Oldest</option>
                         </select>
                     </div>
                 </div>
 
-                <div id="upcoming-contests" class="space-y-4">
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-primary-100 dark:border-gray-700 hover:shadow-md transition-shadow">
-                        <div class="p-6">
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-3">
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">Upcoming</span>
-                                        <span class="text-sm text-primary-500 dark:text-gray-400"><i class="far fa-calendar-alt mr-1"></i> Starts in 2 days</span>
-                                    </div>
-                                    <h2 class="text-xl font-bold text-primary-600 dark:text-white mt-2">Weekly Coding Challenge #42</h2>
-                                    <p class="text-primary-500 dark:text-gray-400 mt-1">Test your skills with our weekly coding challenge. Solve 5 problems in 3 hours!</p>
-                                    <div class="mt-4 flex flex-wrap gap-4 text-sm">
-                                        <div class="flex items-center text-primary-600 dark:text-blue-300"><i class="far fa-clock mr-2"></i> 3 hours</div>
-                                        <div class="flex items-center text-primary-600 dark:text-blue-300"><i class="fas fa-users mr-2"></i> 1,245 participants</div>
-                                        <div class="flex items-center text-primary-600 dark:text-blue-300"><i class="fas fa-trophy mr-2"></i> $500 Prize Pool</div>
-                                    </div>
-                                </div>
-                                <div class="mt-4 md:mt-0 md:ml-6">
-                                    <a href="contest-details.html" class="inline-block text-center w-full md:w-auto bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm">Register Now</a>
-                                    <div class="mt-2 text-sm text-center md:text-right text-primary-500 dark:text-gray-400">Registration ends in 1 day 12h</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-primary-100 dark:border-gray-700 hover:shadow-md transition-shadow">
-                        <div class="p-6">
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-3">
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">Registration Open</span>
-                                        <span class="text-sm text-primary-500 dark:text-gray-400"><i class="far fa-calendar-alt mr-1"></i> Starts in 5 days</span>
-                                    </div>
-                                    <h2 class="text-xl font-bold text-primary-600 dark:text-white mt-2">Spring Coding Marathon 2025</h2>
-                                    <p class="text-primary-500 dark:text-gray-400 mt-1">A 24-hour coding marathon with challenging problems and exciting prizes!</p>
-                                    <div class="mt-4 flex flex-wrap gap-4 text-sm">
-                                        <div class="flex items-center text-primary-600 dark:text-blue-300"><i class="far fa-clock mr-2"></i> 24 hours</div>
-                                        <div class="flex items-center text-primary-600 dark:text-blue-300"><i class="fas fa-users mr-2"></i> 3,782 participants</div>
-                                        <div class="flex items-center text-primary-600 dark:text-blue-300"><i class="fas fa-trophy mr-2"></i> $5,000 Prize Pool</div>
-                                    </div>
-                                </div>
-                                <div class="mt-4 md:mt-0 md:ml-6">
-                                    <a href="contest-details.html" class="inline-block text-center w-full md:w-auto bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm">Register Now</a>
-                                    <div class="mt-2 text-sm text-center md:text-right text-primary-500 dark:text-gray-400">Registration ends in 4 days 6h</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="past-contests" class="hidden space-y-4">
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-primary-100 dark:border-gray-700 hover:shadow-md transition-shadow">
-                        <div class="p-6">
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-3">
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">Completed</span>
-                                        <span class="text-sm text-primary-500 dark:text-gray-400"><i class="far fa-calendar-alt mr-1"></i> Ended 3 days ago</span>
-                                    </div>
-                                    <h2 class="text-xl font-bold text-primary-600 dark:text-white mt-2">Weekly Coding Challenge #41</h2>
-                                    <p class="text-primary-500 dark:text-gray-400 mt-1">Weekly coding challenge with 5 problems to solve in 3 hours.</p>
-                                    <div class="mt-4 flex flex-wrap gap-4 text-sm">
-                                        <div class="flex items-center text-primary-600 dark:text-blue-300"><i class="fas fa-user-check mr-2"></i> 1,128 participants</div>
-                                        <div class="flex items-center text-primary-600 dark:text-blue-300"><i class="fas fa-medal mr-2 text-yellow-500"></i> 1st Place: $200</div>
-                                    </div>
-                                </div>
-                                <div class="mt-4 md:mt-0 md:ml-6 flex flex-col items-center md:items-end">
-                                    <a href="#" class="text-primary-500 hover:text-primary-600 dark:text-blue-400 dark:hover:text-blue-300 font-medium">View Leaderboard <i class="fas fa-arrow-right ml-1"></i></a>
-                                    <a href="#" class="mt-2 text-sm text-primary-400 hover:text-primary-600 dark:text-gray-400 dark:hover:text-white">View Problems</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div id="upcoming-contests" class="space-y-4"></div>
+                <div id="past-contests" class="hidden space-y-4"></div>
 
                 <div class="mt-8 flex items-center justify-between mb-4">
                     <button class="px-4 py-2 border border-primary-200 dark:border-gray-700 rounded-lg text-primary-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-700 disabled:opacity-50" disabled>Previous</button>
@@ -360,6 +287,105 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            const contestState = { contests: [], activeTab: 'upcoming' };
+            const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+            const parseDate = (value) => {
+                if (!value) return null;
+                const d = new Date(value);
+                return Number.isNaN(d.getTime()) ? null : d;
+            };
+            const formatDate = (value) => {
+                const d = parseDate(value);
+                return d ? d.toLocaleString() : 'TBA';
+            };
+            const getStatus = (contest) => {
+                const now = new Date();
+                const start = parseDate(contest.startDate || contest.date);
+                const end = parseDate(contest.endDate || contest.deadline);
+                if (end && end < now) return 'past';
+                if (start && start > now) return 'upcoming';
+                return contest.status === 'accepted' ? 'upcoming' : 'past';
+            };
+            const buildCard = (contest) => {
+                const status = getStatus(contest);
+                const statusBadge = status === 'past'
+                    ? '<span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">Completed</span>'
+                    : '<span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">Upcoming</span>';
+                const joinButton = contest.can_join
+                    ? `<a data-contest-id="${contest.id}" href="/individual/contest/${contest.id}" class="inline-block text-center w-full md:w-auto bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm">View Details</a>`
+                    : `<button disabled class="inline-block text-center w-full md:w-auto bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-6 py-2 rounded-lg font-medium cursor-not-allowed">Locked</button>`;
+
+                return `
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-primary-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3">
+                                        ${statusBadge}
+                                        <span class="text-sm text-primary-500 dark:text-gray-400"><i class="far fa-calendar-alt mr-1"></i>${formatDate(contest.startDate || contest.date)}</span>
+                                    </div>
+                                    <h2 class="text-xl font-bold text-primary-600 dark:text-white mt-2">${esc(contest.title || 'Untitled Contest')}</h2>
+                                    <p class="text-primary-500 dark:text-gray-400 mt-1">${esc(contest.description || contest.rulesAndDescription || 'No description available.')}</p>
+                                    <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                                        <div class="flex items-center text-primary-600 dark:text-blue-300"><i class="far fa-clock mr-2"></i>${esc(contest.duration || 'TBA')}</div>
+                                        <div class="flex items-center text-primary-600 dark:text-blue-300"><i class="fas fa-trophy mr-2"></i>${esc(contest.prize || 'No prize specified')}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 md:mt-0 md:ml-6">
+                                    ${joinButton}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+            const renderContests = () => {
+                const searchValue = (document.getElementById('contestSearchInput')?.value || '').trim().toLowerCase();
+                const statusFilter = document.getElementById('contestStatusFilter')?.value || 'all';
+                const sortFilter = document.getElementById('contestSortFilter')?.value || 'newest';
+                const nowTab = contestState.activeTab;
+                const filtered = contestState.contests
+                    .filter((contest) => {
+                        const cStatus = getStatus(contest);
+                        if (nowTab !== cStatus) return false;
+                        if (statusFilter !== 'all' && cStatus !== statusFilter) return false;
+                        if (searchValue) {
+                            const hay = `${contest.title || ''} ${contest.description || ''}`.toLowerCase();
+                            if (!hay.includes(searchValue)) return false;
+                        }
+                        return true;
+                    })
+                    .sort((a, b) => {
+                        const ad = parseDate(a.startDate || a.date)?.getTime() || 0;
+                        const bd = parseDate(b.startDate || b.date)?.getTime() || 0;
+                        return sortFilter === 'oldest' ? ad - bd : bd - ad;
+                    });
+
+                const targetId = nowTab === 'upcoming' ? 'upcoming-contests' : 'past-contests';
+                const hideId = nowTab === 'upcoming' ? 'past-contests' : 'upcoming-contests';
+                const targetEl = document.getElementById(targetId);
+                const hideEl = document.getElementById(hideId);
+                if (targetEl) {
+                    targetEl.innerHTML = filtered.length
+                        ? filtered.map(buildCard).join('')
+                        : '<div class="bg-white dark:bg-gray-800 rounded-xl border border-primary-100 dark:border-gray-700 p-6 text-sm text-gray-500 dark:text-gray-300">No contests found.</div>';
+                    targetEl.classList.remove('hidden');
+                    targetEl.querySelectorAll('a[data-contest-id]').forEach((link) => {
+                        link.addEventListener('click', () => {
+                            const id = link.getAttribute('data-contest-id');
+                            if (id) localStorage.setItem('individual_last_contest_id', String(id));
+                        });
+                    });
+                }
+                if (hideEl) hideEl.classList.add('hidden');
+            };
+            const loadContests = async () => {
+                const resp = await fetch('/individual/api/contests');
+                const data = await resp.json();
+                if (!data.success) throw new Error(data.error || 'Failed to load contests');
+                contestState.contests = Array.isArray(data.contests) ? data.contests : [];
+                renderContests();
+            };
             
             // --- 1. SIDEBAR TOGGLE ---
             const sidebar = document.getElementById('mainSidebar');
@@ -501,9 +527,27 @@
             }
 
             if(upcomingTab && pastTab) {
-                upcomingTab.addEventListener('click', () => switchTab(upcomingTab, pastTab, upcomingContests, pastContests));
-                pastTab.addEventListener('click', () => switchTab(pastTab, upcomingTab, pastContests, upcomingContests));
+                upcomingTab.addEventListener('click', () => {
+                    contestState.activeTab = 'upcoming';
+                    switchTab(upcomingTab, pastTab, upcomingContests, pastContests);
+                    renderContests();
+                });
+                pastTab.addEventListener('click', () => {
+                    contestState.activeTab = 'past';
+                    switchTab(pastTab, upcomingTab, pastContests, upcomingContests);
+                    renderContests();
+                });
             }
+            document.getElementById('contestSearchInput')?.addEventListener('input', renderContests);
+            document.getElementById('contestStatusFilter')?.addEventListener('change', renderContests);
+            document.getElementById('contestSortFilter')?.addEventListener('change', renderContests);
+            loadContests().catch((err) => {
+                if (upcomingContests) {
+                    upcomingContests.innerHTML = `<div class="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-700 p-6 text-red-600 dark:text-red-300">${esc(err.message)}</div>`;
+                    upcomingContests.classList.remove('hidden');
+                }
+                if (pastContests) pastContests.classList.add('hidden');
+            });
 
             // --- 4. OVERLAYS & NOTIFICATIONS ---
             const overlay = document.getElementById("profileOverlay");

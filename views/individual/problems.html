@@ -132,8 +132,8 @@
                 </button>
               </div>
               <button id="headerProfileBtn" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                    <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">JD</div>
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">John Doe</span>
+                    <div id="headerAvatar" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">I</div>
+                    <span id="headerUserName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">Individual</span>
               </button>
             </div>
           </div>
@@ -268,27 +268,28 @@
                 </div>
                 <div class="absolute left-1/2 bottom-[-45px] -translate-x-1/2">
                     <div class="w-24 h-24 rounded-full bg-[#1E4A7A] p-1"> 
-                         <div class="w-full h-full rounded-full bg-[#1E4A7A] flex items-center justify-center text-white text-4xl font-normal border-4 border-white dark:border-gray-800">JD</div>
+                         <div id="overlayAvatar" class="w-full h-full rounded-full bg-[#1E4A7A] flex items-center justify-center text-white text-4xl font-normal border-4 border-white dark:border-gray-800">I</div>
                     </div>
                 </div>
             </div>
             <div class="pt-14 pb-6 px-6 text-center">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">John Doe</h2>
+                <h2 id="overlayName" class="text-xl font-bold text-gray-900 dark:text-white">Individual</h2>
                 <div class="flex flex-col items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    <span>ID: CS2025_001</span>
+                    <span>Individual</span>
+                    <span id="overlayEmail"></span>
                 </div>
                 <div class="flex justify-between mt-6 px-2">
                     <div class="text-center">
                         <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Solved</div>
-                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">124</div>
+                        <div id="overlaySolved" class="text-xl font-bold text-gray-900 dark:text-white mt-1">0</div>
                     </div>
                     <div class="text-center border-l border-r border-gray-100 dark:border-gray-700 px-4">
                         <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Rank</div>
-                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">42</div>
+                        <div id="overlayRank" class="text-xl font-bold text-gray-900 dark:text-white mt-1">#-</div>
                     </div>
                     <div class="text-center">
                         <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Points</div>
-                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">1.2k</div>
+                        <div id="overlayPoints" class="text-xl font-bold text-gray-900 dark:text-white mt-1">0</div>
                     </div>
                 </div>
                 <div class="h-px bg-gray-100 dark:bg-gray-700 my-6"></div>
@@ -297,12 +298,12 @@
                     <a href="edit-profile.html" class="nav-item"><i class="fas fa-pen"></i><span>Edit profile</span></a>
                     <a href="reports.html" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
                     <a href="stats.html" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
-                    <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                    <a href="/auth/logout" id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
                         <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
                             <i class="fas fa-sign-out-alt"></i>
                         </div>
                         <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -416,7 +417,7 @@
           problemElement.innerHTML = `
             <div class="col-span-1 flex items-center"><span class="w-2.5 h-2.5 ${statusColor} rounded-full"></span></div>
             <div class="col-span-7">
-              <a href="/individual/problem/${problem.id}" class="font-medium text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 block transition-colors">${problem.id}. ${problem.title}</a>
+              <a data-problem-id="${problem.id}" href="/individual/problem/${problem.id}" class="font-medium text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 block transition-colors">${problem.id}. ${problem.title}</a>
               <div class="flex flex-wrap gap-2 mt-1">
                 ${tags.map((topic) => `<span class="px-2 py-0.5 text-xs rounded-full bg-primary-100 dark:bg-blue-900/30 text-primary-600 dark:text-blue-300">${topic}</span>`).join("")}
               </div>
@@ -425,6 +426,12 @@
             <div class="col-span-2 flex items-center justify-end"><span class="text-sm text-primary-500 dark:text-gray-400">${formatSubmissions(problem.submissions)}</span></div>
           `;
           container.appendChild(problemElement);
+          const link = problemElement.querySelector('a[data-problem-id]');
+          if (link) {
+            link.addEventListener('click', () => {
+              localStorage.setItem('individual_last_problem_id', String(problem.id));
+            });
+          }
         });
       }
 
@@ -434,6 +441,23 @@
         if (!data.success) throw new Error(data.error || "Failed to load problems");
         state.allProblems = Array.isArray(data.problems) ? data.problems : [];
         renderProblems();
+      }
+
+      async function loadOverlayProfile() {
+        try {
+          const res = await fetch('/individual/api/profile-data');
+          const data = await res.json();
+          if (!data.success) return;
+          const p = data.profile;
+          document.getElementById('headerUserName').textContent = p.user.fullName || 'Individual';
+          document.getElementById('headerAvatar').textContent = p.user.initials || 'I';
+          document.getElementById('overlayAvatar').textContent = p.user.initials || 'I';
+          document.getElementById('overlayName').textContent = p.user.fullName || 'Individual';
+          document.getElementById('overlayEmail').textContent = p.user.email || '';
+          document.getElementById('overlaySolved').textContent = String(p.user.solved || 0);
+          document.getElementById('overlayRank').textContent = p.user.globalRank || '#-';
+          document.getElementById('overlayPoints').textContent = String(p.user.points || 0);
+        } catch (_) {}
       }
 
       document.addEventListener("DOMContentLoaded", async () => {
@@ -467,6 +491,7 @@
           const container = document.getElementById("problems-container");
           container.innerHTML = `<div class="p-6 text-sm text-red-500">${err.message}</div>`;
         }
+        await loadOverlayProfile();
 
         // --- 1. SIDEBAR TOGGLE ---
         const sidebar = document.getElementById('mainSidebar');
@@ -551,11 +576,6 @@
 
     // *** PASTE LOGOUT LOGIC HERE ***
     const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            window.location.href = '../../index.html';
-        });
-    }
 
         const notifBtn = document.getElementById('notificationBtn');
         const notifDropdown = document.getElementById('notificationDropdown');
