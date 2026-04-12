@@ -21,50 +21,6 @@
     background: #2e5e99;
 }
 
-.nav-item {
-    cursor: pointer;
-    color: #4b5563;
-}
-
-.dark .nav-item {
-    color: #9ca3af;
-}
-
-.nav-item:hover {
-    background-color: #f3f4f6;
-}
-
-.dark .nav-item:hover {
-    background-color: #374151;
-    color: #e5e7eb;
-}
-
-.nav-item.active {
-    background-color: #d0e1f5;
-    color: #1e4a7a;
-}
-
-.dark .nav-item.active {
-    background-color: #1e4a7a;
-    color: #ffffff;
-}
-
-.nav-item.active::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 60%;
-    width: 4px;
-    background-color: #2e5e99;
-    border-radius: 0 4px 4px 0;
-}
-
-.dark .nav-item.active::before {
-    background-color: #60a5fa;
-}
-
 /* Reports Styles */
 .report-preview-container {
     background: white;

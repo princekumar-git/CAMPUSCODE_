@@ -120,76 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const toNumber = (v) => Number(v || 0);
     const pick = (row, key) => (row && row[key] !== undefined && row[key] !== null ? row[key] : "-");
 
-    const renderSidebarThemeShell = () => {
-        const sidebar = getEl("mainSidebar");
-        const toggleBtn = getEl("sidebarToggleBtn");
-        const toggleIcon = toggleBtn ? toggleBtn.querySelector("i") : null;
-        const sidebarLogoText = getEl("sidebarLogoText");
-        const headerLogoText = getEl("headerLogoText");
-        const themeBtn = getEl("themeToggleBtn");
-        const themeIcon = themeBtn ? themeBtn.querySelector("i") : null;
-        const notifBtn = getEl("notificationBtn");
-        const notifDropdown = getEl("notificationDropdown");
-        const overlay = getEl("profileOverlay");
-
-        if (toggleBtn && sidebar) {
-            toggleBtn.addEventListener("click", () => {
-                sidebar.classList.toggle("collapsed");
-                if (sidebar.classList.contains("collapsed")) {
-                    sidebar.classList.replace("w-64", "w-20");
-                    if (toggleIcon) toggleIcon.style.transform = "rotate(180deg)";
-                    if (sidebarLogoText) { sidebarLogoText.style.opacity = "0"; sidebarLogoText.style.width = "0px"; }
-                    if (headerLogoText) {
-                        headerLogoText.classList.remove("hidden");
-                        setTimeout(() => headerLogoText.classList.remove("opacity-0", "-translate-x-2"), 50);
-                    }
-                } else {
-                    sidebar.classList.replace("w-20", "w-64");
-                    if (toggleIcon) toggleIcon.style.transform = "rotate(0deg)";
-                    if (sidebarLogoText) { sidebarLogoText.style.opacity = "1"; sidebarLogoText.style.width = "auto"; }
-                    if (headerLogoText) {
-                        headerLogoText.classList.add("opacity-0", "-translate-x-2");
-                        setTimeout(() => headerLogoText.classList.add("hidden"), 300);
-                    }
-                }
-            });
-        }
-
-        if (themeBtn) {
-            themeBtn.addEventListener("click", () => {
-                document.documentElement.classList.toggle("dark");
-                const isDark = document.documentElement.classList.contains("dark");
-                if (themeIcon) {
-                    if (isDark) themeIcon.classList.replace("fa-moon", "fa-sun");
-                    else themeIcon.classList.replace("fa-sun", "fa-moon");
-                }
-                try { localStorage.theme = isDark ? "dark" : "light"; } catch (_) { }
-            });
-        }
-
-        if (notifBtn && notifDropdown) {
-            notifBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                notifDropdown.classList.toggle("hidden");
-            });
-            document.addEventListener("click", (e) => {
-                if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) {
-                    notifDropdown.classList.add("hidden");
-                }
-            });
-        }
-
-        const openProfile = () => overlay && overlay.classList.remove("hidden");
-        const closeProfile = () => overlay && overlay.classList.add("hidden");
-        getEl("headerProfileBtn")?.addEventListener("click", openProfile);
-        getEl("closeProfileOverlay")?.addEventListener("click", closeProfile);
-        overlay?.addEventListener("click", (e) => { if (e.target === overlay) closeProfile(); });
-
-        const logout = () => { window.location.href = "/auth/logout"; };
-        getEl("logoutBtn")?.addEventListener("click", logout);
-        getEl("btnLogout")?.addEventListener("click", logout);
-    };
-
     const getMainFilteredRows = (type) => {
         let rows = (datasets[type] || []).slice();
         const search = normalize(getEl("mainFilterSearch")?.value);
@@ -594,7 +524,6 @@ document.addEventListener("DOMContentLoaded", () => {
     getEl("btnDownloadProblemsPDF")?.addEventListener("click", () => exportRows("Problems", "pdf"));
 
     // Boot
-    renderSidebarThemeShell();
     setCurrentDate();
     renderReportMeta();
     window.initReportUI();
