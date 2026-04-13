@@ -4,12 +4,14 @@ const bcrypt = require('bcrypt'); // ⭐ Added for secure password handling
 module.exports = (db, transporter) => {
     const router = express.Router();
 
+    const SESSION_COLS = `id, role, fullName, email, password, collegeName, department, branch, program, year, section, status, is_verified, isVerified, post, gender, mobile, joiningDate, course, subject, points, solvedCount, rank, is_hod, createdAt`;
+    
     const USER_LOOKUP_SQL = `
-        SELECT *, 'student' as source_table FROM student WHERE email = ?
+        SELECT ${SESSION_COLS}, 'student' as source_table FROM student WHERE email = ?
         UNION ALL
-        SELECT *, 'faculty' as source_table FROM faculty WHERE email = ?
+        SELECT ${SESSION_COLS}, 'faculty' as source_table FROM faculty WHERE email = ?
         UNION ALL
-        SELECT *, 'users' as source_table FROM users WHERE email = ?
+        SELECT ${SESSION_COLS}, 'users' as source_table FROM users WHERE email = ?
         LIMIT 1
     `;
 

@@ -89,7 +89,7 @@ const adminRoutes = require('./routes/admin')(db, transporter);
 // Assuming you create these standard route files as well:
 const facultyRoutes = require('./routes/faculty')(db); 
 const studentRoutes = require('./routes/student')(db, transporter);
-const hodRoutes = require('./routes/hod')(db);
+const hodRoutes = require('./routes/hod')(db, transporter);
 const hosRoutes = require('./routes/hos')(db);
 const individualRoutes = require('./routes/individual')(db);
 const forumRoutes = require('./routes/forum')(db); // Added forum API routes

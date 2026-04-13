@@ -1,7 +1,4 @@
 
-.nav-item.active { background-color: #E7F0FA; color: #1E4A7A; border-right: 4px solid #1E4A7A; }
-.dark .nav-item.active { background-color: #1F2937; color: #60A5FA; border-right: 4px solid #60A5FA; }
-
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Scrollbar styles */

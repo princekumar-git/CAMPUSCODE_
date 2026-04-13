@@ -36,16 +36,11 @@
 
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
 
-    <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-700 px-6 py-4 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <button onclick="history.back()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 transition-all text-gray-600 dark:text-gray-300 hover:scale-105 group">
-                    <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
-                </button>
-                <h1 class="text-xl font-bold text-gray-900 dark:text-white">Faculty <span class="text-primary-600 dark:text-blue-400">Directory</span></h1>
-            </div>
-        </div>
-    </nav>
+    <div class="flex h-screen overflow-hidden">
+        <%- include('../partials/faculty_nav', { currentPage: 'faculty' }) %>
+
+        <div class="flex-1 overflow-y-auto">
+            <%- include('../partials/faculty_header', { pageTitle: 'Faculty Profile', user: user }) %>
 
     <div id="loadingState" class="max-w-3xl mx-auto px-4 py-32 text-center flex flex-col items-center justify-center animate-fade-in">
         <div class="relative w-20 h-20 mb-6">
@@ -164,7 +159,9 @@
             </div>
         </div>
 
-    </main>
+            </main>
+        </div>
+    </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', async () => {

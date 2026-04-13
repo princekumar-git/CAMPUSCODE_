@@ -2,7 +2,18 @@ const express = require('express');
 const { requireRole } = require('../middleware/auth');
 const { checkScope } = require('../middleware/authMiddleware');
 
-module.exports = (db) => {
+module.exports = (db, transporter) => {
+    function dbGet(query, params = []) {
+        return new Promise((resolve, reject) => {
+            db.get(query, params, (err, row) => err ? reject(err) : resolve(row));
+        });
+    }
+    function dbAll(query, params = []) {
+        return new Promise((resolve, reject) => {
+            db.all(query, params, (err, rows) => err ? reject(err) : resolve(rows));
+        });
+    }
+
     const router = express.Router();
     const normalizeSql = (expr) => `
         LOWER(
@@ -37,21 +48,122 @@ module.exports = (db) => {
         return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
     };
 
+    const parseContestProblemIds = (rawProblems) => {
+        let parsed = [];
+        if (Array.isArray(rawProblems)) {
+            parsed = rawProblems;
+        } else if (typeof rawProblems === 'string' && rawProblems.trim()) {
+            try {
+                const fromJson = JSON.parse(rawProblems);
+                parsed = Array.isArray(fromJson) ? fromJson : [];
+            } catch {
+                parsed = [];
+            }
+        }
+        return parsed
+            .map((item) => Number(typeof item === 'object' && item !== null ? item.id : item))
+            .filter((id) => Number.isInteger(id) && id > 0);
+    };
+
+    const getContestProblemIds = async (contest) => {
+        const fromJson = parseContestProblemIds(contest?.problems);
+        if (fromJson.length) return fromJson;
+        const rows = await dbAll(`SELECT problem_id FROM contest_problems WHERE contest_id = ?`, [contest.id]);
+        return rows.map((row) => Number(row.problem_id)).filter((id) => Number.isInteger(id) && id > 0);
+    };
+
+    const buildContestLeaderboard = async (contest) => {
+        const contestProblemIds = await getContestProblemIds(contest);
+        if (!contestProblemIds.length) return [];
+
+        const participantRows = await dbAll(`
+            SELECT cp.user_id, cp.joined_at, u.fullName
+            FROM contest_participants cp
+            JOIN account_users u ON u.id = cp.user_id
+            WHERE cp.contest_id = ?
+        `, [contest.id]);
+
+        const acceptedRows = await dbAll(`
+            SELECT s.user_id, s.problem_id, MAX(s.points_earned) as best_points, MIN(s.createdAt) as first_solved_at
+            FROM submissions s
+            WHERE s.contest_id = ? AND s.status = 'accepted'
+            GROUP BY s.user_id, s.problem_id
+        `, [contest.id]);
+
+        const records = new Map();
+        participantRows.forEach((row) => {
+            records.set(Number(row.user_id), {
+                user_id: Number(row.user_id),
+                fullName: row.fullName || 'Student',
+                score: 0,
+                solved: 0,
+                firstSolvedAt: null
+            });
+        });
+
+        for (const row of acceptedRows) {
+            const problemId = Number(row.problem_id);
+            if (!contestProblemIds.includes(problemId)) continue;
+            const userId = Number(row.user_id);
+            if (!records.has(userId)) {
+                const user = await dbGet(`SELECT fullName FROM account_users WHERE id = ?`, [userId]);
+                records.set(userId, {
+                    user_id: userId,
+                    fullName: user?.fullName || 'Student',
+                    score: 0,
+                    solved: 0,
+                    firstSolvedAt: null
+                });
+            }
+            const target = records.get(userId);
+            target.score += Number(row.best_points || 0);
+            target.solved += 1;
+            if (!target.firstSolvedAt || new Date(row.first_solved_at).getTime() < new Date(target.firstSolvedAt).getTime()) {
+                target.firstSolvedAt = row.first_solved_at;
+            }
+        }
+
+        const leaderboard = Array.from(records.values()).sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            if (b.solved !== a.solved) return b.solved - a.solved;
+            const aTime = a.firstSolvedAt ? new Date(a.firstSolvedAt).getTime() : Number.MAX_SAFE_INTEGER;
+            const bTime = b.firstSolvedAt ? new Date(b.firstSolvedAt).getTime() : Number.MAX_SAFE_INTEGER;
+            return aTime - bTime;
+        });
+
+        const total = leaderboard.length || 1;
+        return leaderboard.map((entry, index) => ({
+            ...entry,
+            rank: index + 1,
+            percentile: Math.max(1, Math.round(((total - index) / total) * 100))
+        }));
+    };
+
+
     const getUsersManagedByHod = (hodId, collegeName) => {
         return new Promise((resolve, reject) => {
-            db.all(
-                `SELECT DISTINCT ua.user_id
-                 FROM faculty_assignments ua
-                 JOIN account_users u ON u.id = ua.user_id
-                 WHERE ua.assigned_by_id = ?
-                   AND (COALESCE(ua.collegeName, '') = ? OR COALESCE(u.collegeName, '') = ?)
-                   AND LOWER(COALESCE(u.role, '')) IN ('faculty', 'hos')`,
-                [hodId, collegeName, collegeName],
-                (err, rows) => {
-                    if (err) return reject(err);
-                    resolve((rows || []).map((row) => row.user_id));
-                }
-            );
+            // Get HOD's department first
+            db.get(`SELECT department FROM account_users WHERE id = ?`, [hodId], (deptErr, hodDept) => {
+                if (deptErr) return reject(deptErr);
+                const department = hodDept ? hodDept.department : '';
+
+                // Now get all faculty/HOS in that department OR those assigned explicitly
+                db.all(
+                    `SELECT DISTINCT u.id as user_id
+                     FROM account_users u
+                     LEFT JOIN faculty_assignments ua ON u.id = ua.user_id
+                     WHERE (
+                         (u.department = ? AND u.collegeName = ?) 
+                         OR (ua.assigned_by_id = ? AND (COALESCE(ua.collegeName, '') = ? OR COALESCE(u.collegeName, '') = ?))
+                     )
+                     AND LOWER(COALESCE(u.role, '')) IN ('faculty', 'hos')`,
+                    [department, collegeName, hodId, collegeName, collegeName],
+                    (err, rows) => {
+                        if (err) return reject(err);
+                        resolve((rows || []).map((row) => row.user_id));
+                    }
+                );
+            });
         });
     };
 
@@ -145,8 +257,10 @@ module.exports = (db) => {
     };
 
     // HOD: Assign Role (HOS or Faculty) within their own department
-    router.post('/hod/assign-role', requireRole('hod'), (req, res) => {
-        const { targetUserId, newRole, subject } = req.body;
+    router.post('/hod/api/assign-role', requireRole('hod'), (req, res) => {
+        const { id, role, subject } = req.body;
+        const targetUserId = id;
+        const newRole = role;
         const collegeName = req.session.user.collegeName;
 
         if (!['hos', 'faculty'].includes(newRole)) {
@@ -215,7 +329,7 @@ module.exports = (db) => {
             });
     });
 
-    // HOD: Global Teacher Search & Profile View
+    // HOD: Global Teacher Search & Profile View (Legacy JSON)
     router.get('/hod/view-profile/:id', requireRole('hod'), (req, res) => {
         const collegeName = req.session.user.collegeName;
         db.get(`SELECT id, fullName, email, role, department, mobile, post FROM account_users WHERE id = ? AND collegeName = ?`, 
@@ -224,6 +338,187 @@ module.exports = (db) => {
                 if (!row) return res.status(404).json({ success: false, error: "Teacher not found." });
                 res.json({ success: true, profile: row });
             });
+    });
+
+    // ⭐ HOD: View Detailed Student Profile Page
+    router.get('/hod/view_student', requireRole('hod'), (req, res) => {
+        res.render('hod/view_student.html', { 
+            user: req.session.user, 
+            currentPage: 'student',
+            queryId: req.query.id
+        });
+    });
+
+    // ⭐ HOD: View Detailed Faculty Profile Page
+    router.get('/hod/view_faculty', requireRole('hod'), (req, res) => {
+        res.render('hod/view_faculty.html', { 
+            user: req.session.user, 
+            currentPage: 'faculty',
+            queryId: req.query.id
+        });
+    });
+
+    // ⭐ Faculty/HOD: View Detailed Student Profile Page (Redirected from Faculty list)
+    router.get('/faculty/view_student', requireRole(['faculty', 'hos', 'hod']), (req, res) => {
+        res.render('faculty/view_student.html', { 
+            user: req.session.user, 
+            currentPage: 'student',
+            queryId: req.query.id
+        });
+    });
+
+    // ⭐ Faculty/HOD: View Detailed Faculty Profile Page (Redirected from Faculty list)
+    router.get('/faculty/view_faculty', requireRole(['faculty', 'hos', 'hod']), (req, res) => {
+        res.render('faculty/view_faculty.html', { 
+            user: req.session.user, 
+            currentPage: 'faculty',
+            queryId: req.query.id
+        });
+    });
+
+    // ⭐ HOD: Detailed Student Profile API (Replicated but isolated for HOD)
+    router.get('/hod/api/student/public-profile/:id', requireRole('hod'), (req, res) => {
+        const studentId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        db.get(`
+            SELECT id, fullName, email, department, branch, program, year, section, collegeName, role, status
+            FROM account_users 
+            WHERE id = ? AND collegeName = ? AND role = 'student'
+        `, [studentId, collegeName], (err, user) => {
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            if (!user) return res.status(404).json({ success: false, message: "Student not found" });
+
+            res.json({
+                success: true,
+                student: {
+                    ...user,
+                    points: user.points || 0,
+                    rank: user.rank || 'Unranked',
+                    solvedCount: user.solvedCount || 0
+                }
+            });
+        });
+    });
+
+    // ⭐ Faculty/HOD: Detailed Student Profile API
+    router.get('/faculty/api/student/public-profile/:id', requireRole(['faculty', 'hos', 'hod']), (req, res) => {
+        const studentId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        db.get(`
+            SELECT id, fullName, email, department, branch, program, year, section, collegeName, role, status
+            FROM account_users 
+            WHERE id = ? AND collegeName = ? AND role = 'student'
+        `, [studentId, collegeName], (err, user) => {
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            if (!user) return res.status(404).json({ success: false, message: "Student not found" });
+
+            res.json({
+                success: true,
+                student: {
+                    ...user,
+                    points: user.points || 0,
+                    rank: user.rank || 'Unranked',
+                    solvedCount: user.solvedCount || 0
+                }
+            });
+        });
+    });
+
+    // ⭐ HOD: Detailed Faculty Profile API (Replicated but isolated for HOD)
+    router.get('/hod/api/faculty/public-profile/:id', requireRole('hod'), (req, res) => {
+        const facultyId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        db.get(`SELECT id, fullName, email, department, branch, program, collegeName, role, status, is_hod 
+                FROM account_users WHERE id = ? AND collegeName = ?`, 
+        [facultyId, collegeName], (err, user) => {
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            if (!user) return res.status(404).json({ success: false, message: "Faculty not found" });
+
+            const statsQuery = `
+                SELECT 
+                    (SELECT COUNT(*) FROM contests WHERE createdBy = ?) as totalContests,
+                    (SELECT COUNT(*) FROM problems WHERE faculty_id = ?) as totalProblems
+            `;
+
+            db.get(statsQuery, [facultyId, facultyId], (err, stats) => {
+                res.json({
+                    success: true,
+                    faculty: user,
+                    stats: {
+                        problemsCreated: stats ? stats.totalProblems : 0,
+                        activeContests: stats ? stats.totalContests : 0
+                    }
+                });
+            });
+        });
+    });
+
+    // ⭐ HOD: API to Get Full Contest Details for Modal
+    router.get('/hod/api/contest-details/:id', requireRole('hod'), async (req, res) => {
+        const contestId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        try {
+            const contest = await dbGet(`
+                SELECT c.*, u.fullName as creatorName 
+                FROM contests c 
+                JOIN account_users u ON c.createdBy = u.id 
+                WHERE c.id = ? AND u.collegeName = ?
+            `, [contestId, collegeName]);
+
+            if (!contest) return res.status(404).json({ success: false, message: "Contest not found" });
+
+            const problems = await dbAll(`
+                SELECT p.id, p.title, p.subject, p.difficulty, p.points
+                FROM problems p
+                JOIN contest_problems cp ON p.id = cp.problem_id
+                WHERE cp.contest_id = ?
+            `, [contestId]);
+
+            res.json({
+                success: true,
+                contest: {
+                    ...contest,
+                    problems: problems || []
+                }
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, message: "Server error" });
+        }
+    });
+
+    // ⭐ Faculty/HOD: Detailed Faculty Profile API
+    router.get('/faculty/api/faculty/public-profile/:id', requireRole(['faculty', 'hos', 'hod']), (req, res) => {
+        const facultyId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        db.get(`SELECT id, fullName, email, department, branch, program, collegeName, role, status, is_hod 
+                FROM account_users WHERE id = ? AND collegeName = ?`, 
+        [facultyId, collegeName], (err, user) => {
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            if (!user) return res.status(404).json({ success: false, message: "Faculty not found" });
+
+            const statsQuery = `
+                SELECT 
+                    (SELECT COUNT(*) FROM contests WHERE createdBy = ?) as totalContests,
+                    (SELECT COUNT(*) FROM problems WHERE faculty_id = ?) as totalProblems
+            `;
+
+            db.get(statsQuery, [facultyId, facultyId], (err, stats) => {
+                res.json({
+                    success: true,
+                    faculty: user,
+                    stats: {
+                        problemsCreated: stats ? stats.totalProblems : 0,
+                        activeContests: stats ? stats.totalContests : 0
+                    }
+                });
+            });
+        });
     });
 
 
@@ -299,6 +594,33 @@ module.exports = (db) => {
         // Recently Pending Items
         const questionsQuery = `SELECT * FROM problems WHERE department = ? AND status = 'pending' ORDER BY id DESC LIMIT 5`;
         const contestsQuery  = `SELECT * FROM contests WHERE department = ? AND status = 'pending' ORDER BY id DESC LIMIT 5`;
+        const recentActivityQuery = `
+            SELECT *
+            FROM (
+                SELECT
+                    'problem' AS kind,
+                    p.title AS title,
+                    p.createdAt AS activityAt,
+                    'Submitted problem' AS actionLabel,
+                    'bg-blue-500' AS colorClass
+                FROM problems p
+                WHERE p.department = ?
+
+                UNION ALL
+
+                SELECT
+                    'contest' AS kind,
+                    c.title AS title,
+                    COALESCE(c.createdAt, c.startDate, c.date) AS activityAt,
+                    'Created contest' AS actionLabel,
+                    'bg-purple-500' AS colorClass
+                FROM contests c
+                WHERE c.department = ?
+            ) recent_items
+            WHERE activityAt IS NOT NULL
+            ORDER BY datetime(activityAt) DESC
+            LIMIT 6
+        `;
 
         // Chart 1: Difficulty Spread
         const difficultyQuery = `
@@ -327,11 +649,14 @@ module.exports = (db) => {
                 db.all(contestsQuery, [dept], (err, pendingContests) => {
                     if (err) return res.status(500).send(err.message);
 
-                    db.all(difficultyQuery, [dept], (err, diffRows) => {
-                        if (err) return res.status(500).send(err.message);
+                    db.all(recentActivityQuery, [dept, dept], (recentErr, recentActivity) => {
+                        if (recentErr) return res.status(500).send(recentErr.message);
 
-                        db.all(trendQuery, [dept], (err, trendRows) => {
+                        db.all(difficultyQuery, [dept], (err, diffRows) => {
                             if (err) return res.status(500).send(err.message);
+
+                            db.all(trendQuery, [dept], (err, trendRows) => {
+                                if (err) return res.status(500).send(err.message);
 
                             // Build difficulty spread object
                             const difficultySpread = { Easy: 0, Medium: 0, Hard: 0 };
@@ -354,13 +679,15 @@ module.exports = (db) => {
 
                             const graphData = { difficultySpread, trendLabels, trendCounts };
 
-                            res.render('hod/dashboard.html', {
-                                user: req.session.user,
-                                stats,
-                                pendingQuestions,
-                                pendingContests,
-                                graphData,
-                                currentPage: 'dashboard'
+                                res.render('hod/dashboard.html', {
+                                    user: req.session.user,
+                                    stats,
+                                    pendingQuestions,
+                                    pendingContests,
+                                    recentActivity: recentActivity || [],
+                                    graphData,
+                                    currentPage: 'dashboard'
+                                });
                             });
                         });
                     });
@@ -371,50 +698,86 @@ module.exports = (db) => {
 
 
     // Faculty Management
-    router.get('/hod/faculty', requireRole('hod'), checkScope, (req, res) => {
+    router.get('/hod/faculty', requireRole('hod'), checkScope, async (req, res) => {
         const college = req.session.user.collegeName;
+        const hodDept = req.session.user.department;
+        const selectedDept = req.query.dept || '';
 
-        // Canonical source of truth for role tags is account_users.
-        // This avoids stale UNION collisions that can mislabel HOD as HOS.
-        let facultyQuery = `
-            SELECT
-                u.id,
-                u.fullName,
-                u.email,
-                CASE WHEN COALESCE(u.is_hod, 0) = 1 THEN 'hod' ELSE LOWER(COALESCE(u.role, 'faculty')) END as role,
-                u.status,
-                COALESCE(NULLIF(u.department, ''), NULLIF(u.branch, ''), '') as department,
-                u.subject as hosSubject,
-                u.joiningDate,
-                GROUP_CONCAT(DISTINCT ua.subject || ' (' || ua.year || ' - ' || ua.section || ')') as assignments
-            FROM account_users u
-            LEFT JOIN faculty_assignments ua
-                ON u.id = ua.user_id
-               AND ${normalizeSql(`COALESCE(ua.collegeName, '')`)} = ${normalizeSql(`?`)}
-            WHERE ${normalizeSql(`COALESCE(u.collegeName, '')`)} = ${normalizeSql(`?`)}
-              AND LOWER(COALESCE(u.role, '')) IN ('faculty', 'hos', 'hod')
-            GROUP BY u.id
-            ORDER BY u.fullName COLLATE NOCASE ASC
-        `;
-        const params = [college, college];
+        try {
+            // Fetch all departments in this college for the dropdown filter
+            const departments = await dbAll(`SELECT name FROM branches WHERE collegeName = ? ORDER BY name ASC`, [college]);
+            const allCollegeDepartments = (departments || []).map(d => d.name);
 
-        db.all(facultyQuery, params, (err, faculty) => {
-            if (err) return res.status(500).json({ success: false, error: err.message });
+            let facultyQuery = `
+                SELECT
+                    u.id,
+                    u.fullName,
+                    u.email,
+                    CASE WHEN COALESCE(u.is_hod, 0) = 1 THEN 'hod' ELSE LOWER(COALESCE(u.role, 'faculty')) END as role,
+                    u.status,
+                    COALESCE(NULLIF(u.department, ''), NULLIF(u.branch, ''), '') as department,
+                    u.subject as hosSubject,
+                    u.joiningDate,
+                    u.mobile,
+                    u.gender,
+                    u.post,
+                    GROUP_CONCAT(DISTINCT ua.subject || ' (' || ua.year || ' - ' || ua.section || ')') as assignments
+                FROM account_users u
+                LEFT JOIN faculty_assignments ua
+                    ON u.id = ua.user_id
+                   AND ${normalizeSql(`COALESCE(ua.collegeName, '')`)} = ${normalizeSql(`?`)}
+                WHERE ${normalizeSql(`COALESCE(u.collegeName, '')`)} = ${normalizeSql(`?`)}
+                  AND (
+                      u.status = 'active'
+                      OR (u.status = 'pending' AND COALESCE(NULLIF(u.department, ''), NULLIF(u.branch, ''), '') = ?)
+                  )
+                  AND LOWER(COALESCE(u.role, '')) IN ('faculty', 'hos', 'hod')
+            `;
             
+            const params = [college, college, hodDept];
+
+            if (selectedDept) {
+                facultyQuery += ` AND COALESCE(NULLIF(u.department, ''), NULLIF(u.branch, ''), '') = ? `;
+                params.push(selectedDept);
+            }
+
+            facultyQuery += ` GROUP BY u.id ORDER BY u.fullName COLLATE NOCASE ASC `;
+
+            const faculty = await dbAll(facultyQuery, params);
+            
+            // Calculate stats for dashboard cards
+            const hosCount = (faculty || []).filter(f => f.role === 'hos').length;
+            const totalAssignments = (faculty || []).reduce((acc, f) => {
+                if (!f.assignments) return acc;
+                return acc + f.assignments.split(',').length;
+            }, 0);
+
             res.render('hod/faculty.html', {
                 user: req.session.user,
                 departmentFaculty: faculty,
+                allCollegeDepartments,
+                selectedDept,
+                stats: {
+                    hosCount,
+                    totalAssignments
+                },
                 currentPage: 'faculty',
                 dropdownData: res.locals.dropdownData
             });
-        });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, error: err.message });
+        }
     });
 
     // HOD: Create Faculty Account
     router.post('/hod/faculty/create', requireRole('hod'), (req, res) => {
-        const { fullName, email, mobile, post } = req.body;
-        const branch = req.session.user.department;
-        const program = req.session.user.course;
+        const { fullName, email, mobile, post, gender, joiningDate } = req.body;
+        
+        // Inherit context from HOD session
+        const branch = req.session.user.department; // Branch same as HOD department
+        const department = req.session.user.department; 
+        const program = req.session.user.course; // Program same as HOD course
         const college = req.session.user.collegeName;
 
         if (!fullName || !email) {
@@ -429,16 +792,44 @@ module.exports = (db) => {
             }
 
             const bcrypt = require('bcrypt');
-            const tempPassword = 'changeme123';
-            bcrypt.hash(tempPassword, 10, (err, hash) => {
+            const defaultPass = 'changeme123';
+            bcrypt.hash(defaultPass, 10, (err, hash) => {
                 if (err) return res.status(500).send(err.message);
 
                 db.run(
-                    `INSERT INTO account_users (fullName, email, password, role, department, branch, program, collegeName, mobile, post, status)
-                     VALUES (?, ?, ?, 'faculty', ?, ?, ?, ?, ?, ?, 'pending')`,
-                    [fullName, email, hash, branch, branch, program || '', college, mobile || '', post || ''],
+                    `INSERT INTO account_users (fullName, email, password, role, department, branch, program, collegeName, mobile, post, gender, joiningDate, status)
+                     VALUES (?, ?, ?, 'faculty', ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+                    [fullName, email, hash, department, branch, program || '', college, mobile || '', post || '', gender || '', joiningDate || ''],
                     function(err) {
                         if (err) return res.status(500).send(err.message);
+                        
+                        // Send Welcome Email
+                        if (transporter) {
+                            const mailOptions = {
+                                from: process.env.EMAIL_USER,
+                                to: email,
+                                subject: 'Welcome to CampusCode - Faculty Account Created',
+                                html: `
+                                    <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                                        <h2 style="color: #1E4A7A;">Welcome to CampusCode, ${fullName}!</h2>
+                                        <p>Your faculty account has been created by your Head of Department.</p>
+                                        <p><strong>Department:</strong> ${department}</p>
+                                        <p><strong>Program:</strong> ${program || 'N/A'}</p>
+                                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                                        <p>You can now log in using the following credentials:</p>
+                                        <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; font-family: monospace;">
+                                            <p><strong>Email:</strong> ${email}</p>
+                                            <p><strong>Default Password:</strong> <span style="color: #d32f2f;">${defaultPass}</span></p>
+                                        </div>
+                                        <p style="margin-top: 20px; font-size: 0.9em; color: #666;">For security reasons, please change your password immediately after your first login.</p>
+                                    </div>
+                                `
+                            };
+                            transporter.sendMail(mailOptions).catch(mailErr => {
+                                console.error('Faculty Welcome Email failed:', mailErr);
+                            });
+                        }
+
                         res.redirect('/college/hod/faculty?created=1');
                     }
                 );
@@ -446,8 +837,29 @@ module.exports = (db) => {
         });
     });
 
+    // HOD: Update Faculty Profile
+    router.post('/hod/faculty/update', requireRole('hod'), (req, res) => {
+        const { id, fullName, email, post, mobile, gender, joiningDate } = req.body;
+        const college = req.session.user.collegeName;
+
+        if (!id || !fullName || !email) {
+            return res.redirect('/college/hod/faculty?error=Missing+details');
+        }
+
+        db.run(
+            `UPDATE account_users 
+             SET fullName = ?, email = ?, post = ?, mobile = ?, gender = ?, joiningDate = ?
+             WHERE id = ? AND collegeName = ?`,
+            [fullName, email, post, mobile, gender, joiningDate, id, college],
+            function(err) {
+                if (err) return res.status(500).send(err.message);
+                res.redirect('/college/hod/faculty?updated=1');
+            }
+        );
+    });
+
     // HOD: Assign Sections and Years
-    router.post('/hod/assign-sections-years', requireRole('hod'), (req, res) => {
+    router.post('/hod/api/assign-sections', requireRole('hod'), (req, res) => {
         const { facultyId, assignedYears, assignedSections, subjectName } = req.body;
         const dept = req.session.user.department;
         const college = req.session.user.collegeName;
@@ -470,7 +882,7 @@ module.exports = (db) => {
                 [facultyId, subjectName, assignedYears, assignedSections, hodId, college],
                 function(err) {
                     if (err) return res.status(500).send(err.message);
-                    res.redirect('/college/hod/faculty?assigned=1');
+                    res.json({ success: true, message: 'Assignment successful' });
                 }
             );
         });
@@ -516,6 +928,100 @@ module.exports = (db) => {
         });
     });
 
+    // HOD: Create Student
+    router.post('/hod/student/create', requireRole('hod'), (req, res) => {
+        const { fullName, email, year, section } = req.body;
+        const hod = req.session.user;
+        const college = hod.collegeName;
+        const department = hod.department;
+        const branch = hod.department; 
+        const program = hod.course;
+
+        if (!fullName || !email) {
+            return res.status(400).json({ success: false, message: 'Name and email are required' });
+        }
+
+        db.get(`SELECT id FROM users WHERE email = ?`, [email], (err, existing) => {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            if (existing) return res.status(400).json({ success: false, message: 'Email already exists' });
+
+            const defaultPass = 'student123'; 
+            bcrypt.hash(defaultPass, 10, (err, hash) => {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+
+                db.run(
+                    `INSERT INTO users (fullName, email, password, role, collegeName, department, branch, program, year, section, status, is_verified, isVerified)
+                     VALUES (?, ?, ?, 'student', ?, ?, ?, ?, ?, ?, 'active', 1, 1)`,
+                    [fullName, email.toLowerCase(), hash, college, department, branch, program, year || '', section || ''],
+                    function(err) {
+                        if (err) return res.status(500).json({ success: false, message: err.message });
+
+                        // Send Welcome Email
+                        if (transporter) {
+                            const mailOptions = {
+                                from: process.env.EMAIL_USER,
+                                to: email,
+                                subject: 'Welcome to CampusCode - Student Account Created',
+                                html: `
+                                    <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e5e7eb; border-radius: 10px;">
+                                        <h2 style="color: #1E4A7A;">Hi ${fullName},</h2>
+                                        <p>Your student account has been created by your HOD.</p>
+                                        <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                            <p style="margin: 5px 0;"><strong>Login URL:</strong> <a href="http://localhost:3000">CampusCode Dashboard</a></p>
+                                            <p style="margin: 5px 0;"><strong>Username:</strong> ${email}</p>
+                                            <p style="margin: 5px 0;"><strong>Password:</strong> <span style="color: #d946ef;">${defaultPass}</span></p>
+                                        </div>
+                                        <p>Please log in and change your password as soon as possible.</p>
+                                    </div>
+                                `
+                            };
+                            transporter.sendMail(mailOptions).catch(console.error);
+                        }
+
+                        res.json({ success: true, message: 'Student added successfully!' });
+                    }
+                );
+            });
+        });
+    });
+
+    // HOD: Update Student
+    router.post('/hod/student/update/:id', requireRole('hod'), (req, res) => {
+        const { fullName, email, year, section, status } = req.body;
+        const studentId = req.params.id;
+        const hodDept = req.session.user.department;
+        const hodCollege = req.session.user.collegeName;
+
+        db.run(
+            `UPDATE users 
+             SET fullName = ?, email = ?, year = ?, section = ?, status = ? 
+             WHERE id = ? AND department = ? AND collegeName = ? AND role = 'student'`,
+            [fullName, email, year, section, status, studentId, hodDept, hodCollege],
+            function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                if (this.changes === 0) return res.status(404).json({ success: false, message: 'Student not found or unauthorized' });
+                res.json({ success: true, message: 'Student updated successfully!' });
+            }
+        );
+    });
+
+    // HOD: Delete Student
+    router.delete('/hod/student/:id', requireRole('hod'), (req, res) => {
+        const studentId = req.params.id;
+        const hodDept = req.session.user.department;
+        const hodCollege = req.session.user.collegeName;
+
+        db.run(
+            `DELETE FROM users WHERE id = ? AND department = ? AND collegeName = ? AND role = 'student'`,
+            [studentId, hodDept, hodCollege],
+            function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                if (this.changes === 0) return res.status(404).json({ success: false, message: 'Student not found or unauthorized' });
+                res.json({ success: true, message: 'Student deleted successfully!' });
+            }
+        );
+    });
+
     // Question Bank / Problem Management
     router.get('/hod/problem', requireRole('hod'), checkScope, (req, res) => {
         const user = req.session.user;
@@ -524,11 +1030,11 @@ module.exports = (db) => {
         db.all(
             `SELECT p.*, u.fullName as facultyName, u.role as creatorRole FROM problems p 
              LEFT JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id 
-             WHERE (p.department = ?)
+             WHERE (p.department = ? AND COALESCE(u.collegeName, '') = ?)
                 OR (p.status = 'accepted' AND u.collegeName = ? AND LOWER(p.visibility_scope) = 'global')
                 OR (p.status IN ('accepted', 'active') AND LOWER(p.visibility_scope) = 'global' AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
              ORDER BY p.createdAt DESC`, 
-            [dept, college], 
+            [dept, college, college], 
             (err, problems) => {
                 if (err) return res.status(500).send(err.message);
                 const allProblems = problems || [];
@@ -564,11 +1070,11 @@ module.exports = (db) => {
             `SELECT c.*, u.role as creatorRole FROM contests c
              LEFT JOIN account_users u ON c.createdBy = u.id
              WHERE (c.status = 'accepted' AND c.collegeName = ?)
-                OR (c.department = ? AND c.collegeName = ?)
-                OR c.createdBy = ?
-                        OR (c.status = 'accepted' AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
+                OR (c.department = ? AND c.status = 'accepted' AND c.collegeName = ?)
+                OR (c.createdBy = ? AND c.collegeName = ?)
+                OR (c.status = 'accepted' AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
              ORDER BY c.id DESC`,
-            [college, dept, college, hodId],
+            [college, dept, college, hodId, college],
             (err, contests) => {
                 if (err) return res.status(500).send(err.message);
                 res.render('hod/contest.html', {
@@ -581,6 +1087,92 @@ module.exports = (db) => {
     });
 
     // Community Forum
+
+    // HOD: Contest View (Details)
+    router.get('/hod/contest/view/:id', requireRole('hod'), checkScope, async (req, res) => {
+        const contestId = Number(req.params.id);
+        const college = req.session.user.collegeName;
+        const dept = req.session.user.department;
+
+        try {
+            const contest = await dbGet(`
+                SELECT c.*, u.fullName as creatorName, u2.fullName as approverName
+                FROM contests c
+                LEFT JOIN account_users u ON c.createdBy = u.id
+                LEFT JOIN account_users u2 ON c.approved_by = u2.id
+                WHERE c.id = ? AND (c.collegeName = ? OR c.department = ?)
+            `, [contestId, college, dept]);
+
+            if (!contest) return res.status(404).send("Contest not found or access denied.");
+
+            const problemIds = await getContestProblemIds(contest);
+            let contestProblems = [];
+            if (problemIds.length) {
+                const placeholders = problemIds.map(() => '?').join(',');
+                contestProblems = await dbAll(`
+                    SELECT id, title, subject, difficulty, status
+                    FROM problems
+                    WHERE id IN (${placeholders})
+                `, problemIds);
+            }
+
+            const leaderboard = await buildContestLeaderboard(contest);
+            const leaderboardPreview = leaderboard.slice(0, 5);
+
+            res.render('hod/contest_view.html', {
+                user: req.session.user,
+                contest: normalizeContestRecord(contest),
+                contestProblems,
+                leaderboardPreview,
+                backPath: '/college/hod/contest',
+                currentPage: 'contest'
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send(err.message);
+        }
+    });
+
+    // HOD: Contest Leaderboard
+    router.get('/hod/contest/leaderboard/:id', requireRole('hod'), checkScope, async (req, res) => {
+        const contestId = Number(req.params.id);
+        const college = req.session.user.collegeName;
+        const dept = req.session.user.department;
+
+        try {
+            const contest = await dbGet(`
+                SELECT * FROM contests WHERE id = ? AND (collegeName = ? OR department = ?)
+            `, [contestId, college, dept]);
+
+            if (!contest) return res.status(404).send("Contest not found or access denied.");
+
+            const leaderboard = await buildContestLeaderboard(contest);
+            
+            // Calculate summary stats
+            const participants = leaderboard.length;
+            const submissionsRow = await dbGet(`SELECT COUNT(*) as cnt FROM submissions WHERE contest_id = ?`, [contestId]);
+            const totalSolved = leaderboard.reduce((acc, entry) => acc + entry.solved, 0);
+            const topScore = leaderboard.length > 0 ? leaderboard[0].score : 0;
+
+            res.render('hod/contest_leaderboard.html', {
+                user: req.session.user,
+                contest: normalizeContestRecord(contest),
+                leaderboard,
+                summary: {
+                    participants,
+                    submissions: submissionsRow?.cnt || 0,
+                    totalSolved,
+                    topScore
+                },
+                backPath: '/college/hod/contest',
+                currentPage: 'contest'
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send(err.message);
+        }
+    });
+
     router.get('/hod/community', requireRole('hod'), checkScope, (req, res) => {
         res.render('hod/community.html', { user: req.session.user, currentPage: 'community' });
     });
@@ -1450,32 +2042,53 @@ module.exports = (db) => {
     });
     // Approve Content (Problem/Contest)
     router.post('/hod/api/approve-content', requireRole(['hod', 'hos']), (req, res) => {
-        const { id, type, action } = req.body;
+        const { id, action, status } = req.body;
+        const type = String(req.body.type || '').toLowerCase();
         const dept = req.session.user.department;
+        const finalAction = (action || status || '').toLowerCase();
 
         if (!id || !type) return res.status(400).json({ success: false, message: 'Missing id or type' });
 
-        if (type === 'problem') {
-            if (action === 'reject') {
+        if (type === 'problem' || type === 'question') {
+            if (finalAction === 'reject') {
                 return db.run(`UPDATE problems SET status = 'rejected' WHERE id = ? AND department = ?`, [id, dept], function(err) {
                     if (err) return res.status(500).json({ success: false, message: err.message });
                     res.json({ success: true, message: 'Problem rejected.' });
                 });
             }
-            db.get(`SELECT u.role as creatorRole FROM problems p JOIN account_users u ON p.faculty_id = u.id WHERE p.id = ? AND p.department = ?`, [id, dept], (infoErr, infoRow) => {
+            db.get(`SELECT p.hos_verified, p.hod_verified, u.role as creatorRole 
+                    FROM problems p 
+                    JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id 
+                    WHERE p.id = ? AND p.department = ?`, [id, dept], (infoErr, infoRow) => {
                 if (infoErr) return res.status(500).json({ success: false, message: infoErr.message });
                 if (!infoRow) return res.status(404).json({ success: false, message: 'Problem not found or not in your department' });
-                if (String(infoRow.creatorRole || '').toLowerCase() === 'faculty') {
-                    return res.status(400).json({ success: false, message: 'Faculty-created problems require HOS approval.' });
+
+                const userRole = String(req.session.user.role).toLowerCase();
+                const creatorRole = String(infoRow.creatorRole || '').toLowerCase();
+
+                // Logic: 
+                // 1. If HOD approves, it's accepted.
+                // 2. If HOS approves a Faculty problem, it marks hos_verified = 1 (and accepts if HOD verification not strictly sequential).
+                // Actually, let's keep it simple: HOS or HOD approval accepts it, 
+                // but we record who verified what.
+
+                let sql = '';
+                let params = [];
+                if (userRole === 'hod') {
+                    sql = `UPDATE problems SET hod_verified = 1, status = 'accepted', is_public = 1, approved_by = ?, approved_at = ? WHERE id = ? AND department = ?`;
+                    params = [req.session.user.id, new Date().toISOString(), id, dept];
+                } else if (userRole === 'hos') {
+                    // For HOS, we accept if it's faculty problem (they are the subject expert)
+                    sql = `UPDATE problems SET hos_verified = 1, status = 'accepted', is_public = 1, approved_by = ?, approved_at = ? WHERE id = ? AND department = ?`;
+                    params = [req.session.user.id, new Date().toISOString(), id, dept];
+                } else {
+                    return res.status(403).json({ success: false, message: 'Unauthorized role for approval.' });
                 }
-                db.run(
-                    `UPDATE problems SET hod_verified = 1, status = 'accepted', is_public = 1, approved_by = ?, approved_at = ? WHERE id = ? AND department = ?`,
-                    [req.session.user.id, new Date().toISOString(), id, dept],
-                    function(err) {
-                        if (err) return res.status(500).json({ success: false, message: err.message });
-                        res.json({ success: true, message: 'Problem approved.' });
-                    }
-                );
+
+                db.run(sql, params, function(err) {
+                    if (err) return res.status(500).json({ success: false, message: err.message });
+                    res.json({ success: true, message: 'Problem approved.' });
+                });
             });
 
         } else if (type === 'contest') {
@@ -1549,17 +2162,15 @@ module.exports = (db) => {
         const dept = req.session.user.department;
         const college = req.session.user.collegeName;
 
-        // Fetch problems: created by HOD OR in HOD's department
         const query = `
             SELECT p.*, u.fullName as facultyName, u.role as creatorRole 
             FROM problems p
             LEFT JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
-            WHERE (p.department = ? AND u.collegeName = ?)
-               OR (p.status = 'accepted' AND u.collegeName = ? AND LOWER(p.visibility_scope) = 'global')
-                    OR (p.status IN ('accepted', 'active') AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin') AND LOWER(p.visibility_scope) = 'global')
+            WHERE (p.status = 'accepted' AND u.collegeName = ?)
+               OR (p.status IN ('accepted', 'active') AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
             ORDER BY p.id DESC
         `;
-        db.all(query, [dept, college, college], (err, rows) => {
+        db.all(query, [college], (err, rows) => {
             if (err) return res.status(500).json({ success: false, message: err.message });
             res.json({ success: true, data: rows });
         });
@@ -1574,11 +2185,11 @@ module.exports = (db) => {
             `SELECT c.*, u.role as creatorRole FROM contests c
              LEFT JOIN account_users u ON c.createdBy = u.id
              WHERE (c.status = 'accepted' AND c.collegeName = ?)
-                OR (c.department = ? AND c.collegeName = ?)
-                OR c.createdBy = ?
-                        OR (c.status = 'accepted' AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
+                OR (c.department = ? AND c.status = 'accepted' AND c.collegeName = ?)
+                OR (c.createdBy = ? AND c.collegeName = ?)
+                OR (c.status = 'accepted' AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
              ORDER BY c.id DESC`,
-            [college, dept, college, hodId],
+            [college, dept, college, hodId, college],
             (err, rows) => {
                 if (err) return res.status(500).json({ success: false, message: err.message });
                 res.json({ success: true, data: (rows || []).map(normalizeContestRecord) });
