@@ -13,7 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    <script>
+   <script>
       (function() {
         if (localStorage.getItem('theme') === 'dark') {
           document.documentElement.classList.add('dark');
@@ -27,8 +27,10 @@
             fontFamily: { sans: ["Poppins", "sans-serif"], report: ["Roboto", "sans-serif"] },
             colors: {
               primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
-            },
-        };
+            }
+          } /* Added missing closing brace for 'extend' */
+        }   /* Added missing closing brace for 'theme' */
+      };
     </script>
     <style>
         .report-preview-container {
