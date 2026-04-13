@@ -361,12 +361,10 @@
             localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
         }
 
-        function toggleProfile() { document.getElementById('profileOverlay').classList.toggle('hidden'); }
     // 5. Safely rebuild charts ONLY if the page has charts (e.g., dashboard.html)
     if (typeof buildCharts === 'function') {
         buildCharts();
     }
-}
         
         function toggleProfile() {
             const overlay = document.getElementById('profileOverlay');

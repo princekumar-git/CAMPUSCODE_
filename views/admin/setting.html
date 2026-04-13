@@ -30,8 +30,6 @@
             },
         };
     </script>
-<<<<<<< HEAD
-=======
     
     <script>
         // Runs instantly before the page paints to screen
@@ -39,7 +37,6 @@
             document.documentElement.classList.add('dark');
         }
     </script>
->>>>>>> c2c38a5 (match profile overlay)
 
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -596,20 +593,8 @@
 
         // --- CORE DATABASE CONNECTION: FETCH PROFILE ---
         document.addEventListener("DOMContentLoaded", () => {
-            fetchProfile();
-        });
-
-        async function fetchProfile() {
-    try {
-        const res = await fetch('/college/api/profile');
-        if (res.ok) {
-            const data = await res.json();
-            const u = data.user || data;
-        // --- Core Application Logic ---
-        document.addEventListener("DOMContentLoaded", () => {
-            initTheme();
-            initSidebar();
-            initNotifications();
+            // Initialize UI helpers then fetch profile
+            try { initTheme(); initSidebar(); initNotifications(); } catch(e) { /* ignore if not yet defined */ }
             fetchProfile();
         });
 
@@ -883,54 +868,6 @@
         });
 
         // --- UI FUNCTIONS ---
-        function toggleProfile() {
-                    // Update Header
-                    const headerName = document.getElementById('headerName');
-                    const headerInitials = document.getElementById('headerInitials');
-                    if (headerName) headerName.textContent = name;
-                    if (headerInitials) headerInitials.textContent = initials;
-
-                    // Update Overlay
-                    const modalName = document.getElementById('profileOverlayName');
-                    const modalCollege = document.getElementById('profileOverlayCollege');
-                    const modalRole = document.getElementById('profileOverlayRole');
-                    const modalInitials = document.getElementById('profileOverlayInitials');
-
-                    if (modalName) modalName.textContent = name;
-                    if (modalInitials) modalInitials.textContent = initials;
-                    if (modalCollege) modalCollege.innerHTML = `<i class="fas fa-university"></i> ${u.collegeName || 'Unknown Institute'}`;
-                    if (modalRole) {
-                        const roleText = u.role ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Admin';
-                        modalRole.textContent = `Role: ${roleText}`;
-                    }
-
-                    // Auto-fill the settings email input
-                    const emailInput = document.getElementById('newEmailInput');
-                    if(emailInput && u.email) {
-                        emailInput.value = u.email;
-                    }
-                }
-
-                // Fetch Stats for Overlay
-                const [contestsRes, usersRes, programsRes] = await Promise.all([
-                    fetch('/college/api/contests'),
-                    fetch('/college/api/users'),
-                    fetch('/college/api/programs')
-                ]);
-
-                const contestsData = await contestsRes.json();
-                const usersData = await usersRes.json();
-                const programsData = await programsRes.json();
-
-                if (contestsData.success) document.getElementById('statContests').textContent = contestsData.data.length || 0;
-                if (usersData.success) document.getElementById('statUsers').textContent = usersData.users.length || 0;
-                if (programsData.success) document.getElementById('statPrograms').textContent = programsData.data.length || 0;
-
-            } catch (err) { 
-                console.error('Error fetching profile stats:', err); 
-            }
-        }
-
         function toggleProfile(e) {
             if (e) e.stopPropagation();
             const overlay = document.getElementById('profileOverlay');

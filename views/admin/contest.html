@@ -66,8 +66,8 @@
 
         .detail-section { position: relative; padding-left: 1.5rem; border-left: 4px solid #1e4a7a; margin-bottom: 2rem; }
         .dark .detail-section { border-left-color: #7ba4d0; }
-        .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; line-clamp: 1; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-clamp: 2; }
 
         /* FIX: Quill Editor text clearly visible in Dark Mode */
         .dark .ql-toolbar { border-color: #374151; background: #1F2937; color: #fff;}
@@ -443,10 +443,6 @@
         });
 
         async function fetchAdminProfile() {
-    switchLevel('college');
-    fetchProblemsFromDB();
-});
-       async function fetchAdminProfile() {
             try {
                 // 1. Fetch User Profile
                 const response = await fetch('/college/api/profile');

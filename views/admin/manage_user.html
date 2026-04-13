@@ -616,23 +616,15 @@ async function fetchData() {
             }));
         }
 
-        // Fetch hierarchy datasets
-        const resPrograms = await fetch('/college/programs');
-        if (resPrograms.ok) dbPrograms = (await resPrograms.json()).data || [];
+    // Fetch hierarchy datasets (use unified /college/api endpoints)
+    const resPrograms = await fetch('/college/api/programs');
+    if (resPrograms.ok) dbPrograms = (await resPrograms.json()).data || [];
 
-        const resBranches = await fetch('/college/branches');
-        if (resBranches.ok) dbBranches = (await resBranches.json()).data || [];
+    const resBranches = await fetch('/college/api/branches');
+    if (resBranches.ok) dbBranches = (await resBranches.json()).data || [];
 
-        const resSec = await fetch('/college/sections');
-        if (resSec.ok) dbSections = (await resSec.json()).data || [];
-        const resPrograms = await fetch('/college/api/programs');
-        if (resPrograms.ok) dbPrograms = (await resPrograms.json()).data || [];
-
-        const resBranches = await fetch('/college/api/branches');
-        if (resBranches.ok) dbBranches = (await resBranches.json()).data || [];
-
-        const resSec = await fetch('/college/api/sections');
-        if (resSec.ok) dbSections = (await resSec.json()).data || [];
+    const resSec = await fetch('/college/api/sections');
+    if (resSec.ok) dbSections = (await resSec.json()).data || [];
 
         // ⭐ Populate main global UI dropdown filters (Programs, Branches, Sections)
         populateMainFilters();
@@ -968,15 +960,6 @@ function closeAddModal() {
     document.getElementById('addModal').classList.add('hidden');
     document.getElementById('addModal').classList.remove('flex');
 }
-
-function openEditModal(userId) {
-    // Find the user data from the loaded users array
-    const user = users.find(u => u.id === userId);
-    if (!user) {
-        console.error("User not found for editing");
-        return;
-    }
-
 
 // ⭐ Fixed to match Excel case-sensitivity
 function openEditModal(userId) {
