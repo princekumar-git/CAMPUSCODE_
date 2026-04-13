@@ -324,11 +324,11 @@ module.exports = (db) => {
             const subjects = await getAssignedSubjects(hosId);
             
             const placeholders = subjects.length > 0 ? subjects.map(() => '?').join(',') : null;
-    let query = `SELECT c.*, u.fullName as creatorName FROM contests c JOIN account_users u ON c.createdBy = u.id WHERE (u.collegeName = ? AND c.status = 'accepted') OR c.createdBy = ? OR (LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin') AND c.status = 'accepted')`;
-            let params = [college, hosId];
+    let query = `SELECT c.*, u.fullName as creatorName FROM contests c JOIN account_users u ON c.createdBy = u.id WHERE (u.collegeName = ? AND c.status = 'accepted') OR (c.createdBy = ? AND c.collegeName = ?) OR (LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin') AND c.status = 'accepted')`;
+            let params = [college, hosId, college];
 
             if (placeholders) {
-                query += ` OR c.subject IN (${placeholders})`;
+                query += ` OR (c.subject IN (${placeholders}) AND c.status = 'accepted')`;
                 params.push(...subjects);
             }
             query += ` ORDER BY c.createdAt DESC`;
@@ -344,22 +344,10 @@ module.exports = (db) => {
                 SELECT p.id, p.title, p.difficulty, p.subject 
                 FROM problems p 
                 LEFT JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id 
-                WHERE p.status IN ('accepted', 'active') 
-                  AND (
-                      (u.collegeName = ? AND LOWER(p.visibility_scope) = 'global')
-                        OR (LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin') AND LOWER(p.visibility_scope) = 'global')
+                WHERE (p.status = 'accepted' AND u.collegeName = ?)
+                   OR (p.status IN ('accepted', 'active') AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
             `;
             let problemsParams = [college];
-            
-            if (subjects.length > 0) {
-                const ph = subjects.map(() => '?').join(',');
-                problemsQuery += ` OR p.subject IN (${ph}) OR p.faculty_id = ?`;
-                problemsParams.push(...subjects, hosId);
-            } else {
-                problemsQuery += ` OR p.faculty_id = ?`;
-                problemsParams.push(hosId);
-            }
-            problemsQuery += ` )`;
 
             const problems = await new Promise((resolve, reject) => {
                 db.all(problemsQuery, problemsParams, (err, rows) => {
@@ -1079,6 +1067,26 @@ module.exports = (db) => {
         );
     });
 
+    // API to fetch available problems for UI problem picker
+    router.get('/hos/api/available-problems', requireRole('hos'), checkScope, (req, res) => {
+        const user = req.session.user;
+        const query = `
+            SELECT p.*, u.fullName as facultyName, u.role as creatorRole 
+            FROM problems p 
+            LEFT JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id 
+            WHERE (p.status = 'accepted' AND u.collegeName = ?)
+               OR (p.status IN ('accepted', 'active') AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
+            ORDER BY p.id DESC
+        `;
+        db.all(query, [user.collegeName], (err, rows) => {
+            if (err) {
+                console.error("Error fetching available problems:", err);
+                return res.status(500).json({ success: false, message: "Database Error" });
+            }
+            res.json({ success: true, data: rows });
+        });
+    });
+
     // Get Contests API (for JS fetch in hos/contest.ejs)
     router.get('/hos/api/contests', requireRole('hos'), checkScope, async (req, res) => {
         const user = req.session.user;
@@ -1089,13 +1097,13 @@ module.exports = (db) => {
         let query = `SELECT c.*, u.role as creatorRole FROM contests c
                      LEFT JOIN account_users u ON c.createdBy = u.id
                      WHERE (c.status = 'accepted' AND c.collegeName = ?)
-                        OR c.createdBy = ?
+                        OR (c.createdBy = ? AND c.collegeName = ?)
                         OR (c.status = 'accepted' AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))`;
-        const params = [college, hosId];
+        const params = [college, hosId, college];
 
         if (subjects.length > 0) {
             const ph = subjects.map(() => '?').join(',');
-            query += ` OR c.subject IN (${ph})`;
+            query += ` OR (c.subject IN (${ph}) AND c.status = 'accepted')`;
             params.push(...subjects);
         }
         query += ' ORDER BY c.id DESC';
@@ -1234,13 +1242,15 @@ module.exports = (db) => {
     // Contest: faculty -> HOS + HOD, HOS-created -> only HOD
     // ============================================================
     router.post('/hos/api/approve-content', requireRole('hos'), checkScope, (req, res) => {
-        const { id, type, action } = req.body; // action: 'approve' | 'reject'
+        const { id, action, status } = req.body;
+        const type = String(req.body.type || '').toLowerCase();
         const user = req.session.user;
+        const finalAction = (action || status || '').toLowerCase();
 
         if (!id || !type) return res.status(400).json({ success: false, message: 'Missing id or type' });
 
-        if (type === 'problem') {
-            if (action === 'reject') {
+        if (type === 'problem' || type === 'question') {
+            if (finalAction === 'reject') {
                 return db.run(`UPDATE problems SET status = 'rejected' WHERE id = ?`, [id], function(err) {
                     if (err) return res.status(500).json({ success: false, message: err.message });
                     res.json({ success: true, message: 'Problem rejected.' });

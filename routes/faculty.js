@@ -59,11 +59,8 @@ module.exports = (db) => {
             const studentCountRow = await getSingle(`SELECT COUNT(id) as count FROM account_users WHERE role = 'student' AND status = 'active' AND collegeName = ?`, [user.collegeName]);
             const problemsCountRow = await getSingle(`SELECT COUNT(id) as count FROM problems WHERE faculty_id = ?`, [user.id]);
             const contestsCountRow = await getSingle(
-                `SELECT COUNT(c.id) as count 
-                 FROM contests c 
-                 LEFT JOIN account_users u ON c.createdBy = u.id 
-                 WHERE (u.collegeName = ? AND c.status = 'accepted') OR (c.createdBy = ? AND c.status = 'accepted')`, 
-                [user.collegeName, user.id]
+                `SELECT COUNT(id) as count FROM contests WHERE createdBy = ? AND status = 'accepted'`, 
+                [user.id]
             );
             
             // Calculate Subjects Taught/Managed
@@ -109,6 +106,24 @@ module.exports = (db) => {
                 status: 'Draft',
                 statusColor: 'gray'
             }));
+
+            // Fetch Contest Performance Data
+            const performanceRows = await runQuery(`
+                SELECT 
+                    c.title, 
+                    AVG(s.points_earned) as avgScore
+                FROM contests c
+                LEFT JOIN submissions s ON c.id = s.contest_id
+                WHERE (c.createdBy = ? OR (c.collegeName = ? AND c.status = 'accepted'))
+                GROUP BY c.id
+                ORDER BY c.startDate DESC
+                LIMIT 6
+            `, [user.id, user.collegeName]);
+
+            const contestPerformance = {
+                labels: performanceRows.length > 0 ? performanceRows.map(r => r.title) : ["No Contests"],
+                data: performanceRows.length > 0 ? performanceRows.map(r => Math.round(r.avgScore || 0)) : [0]
+            };
             
             const recentActivity = [];
             
@@ -121,7 +136,7 @@ module.exports = (db) => {
 
             const nowHour = new Date().getHours();
             const greeting = nowHour < 12 ? 'Good morning' : (nowHour < 17 ? 'Good afternoon' : 'Good evening');
-            res.render('faculty/dashboard.html', { user, stats, draftProblems, recentActivity, difficultySpread, greeting, currentPage: 'dashboard', pageTitle: 'Dashboard' });
+            res.render('faculty/dashboard.html', { user, stats, draftProblems, recentActivity, difficultySpread, contestPerformance, greeting, currentPage: 'dashboard', pageTitle: 'Dashboard' });
         } catch (error) {
             console.error("Dashboard DB Error:", error);
             const nowHour = new Date().getHours();
@@ -132,6 +147,7 @@ module.exports = (db) => {
                 draftProblems: [], 
                 recentActivity: [],
                 difficultySpread: [0, 0, 0],
+                contestPerformance: { labels: ["No Data"], data: [0] },
                 greeting,
                 currentPage: 'dashboard',
                 pageTitle: 'Dashboard'
@@ -310,35 +326,80 @@ module.exports = (db) => {
     });
 
     router.post('/problem/edit/:id', requireRole(['faculty', 'hos', 'hod']), (req, res) => {
-        const user = buildUser(req);
-        const problemId = req.params.id;
-        let { title, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, description, tags, is_public } = req.body;
-        
-        let isPublicVal = (is_public === 'on' || is_public === 'true' || is_public === '1') ? 1 : 0;
-        if (!user.isVerified) { isPublicVal = 0; }
-
-        // Set universal XP points based on difficulty
-        const getPointsFromDifficulty = (diff) => {
-            const normalizedDiff = String(diff || 'easy').toLowerCase();
-            switch (normalizedDiff) {
-                case 'easy': return 5;
-                case 'medium': return 10;
-                case 'hard': return 15;
-                default: return 5; // default to easy
+        hiddenTestsUpload(req, res, (uploadErr) => {
+            if (uploadErr) {
+                return res.status(400).send(`Hidden testcase upload failed: ${uploadErr.message}`);
             }
-        };
-        const calculatedPoints = getPointsFromDifficulty(difficulty);
 
-        db.run(`UPDATE problems SET title = ?, description = ?, subject = ?, difficulty = ?, points = ?, input_format = ?, output_format = ?, constraints = ?, sample_input = ?, sample_output = ?, hidden_test_cases = ?, tags = ?, is_public = ? WHERE id = ? AND faculty_id = ?`,
-            [title, description, subject, difficulty, calculatedPoints, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, tags || '', isPublicVal, problemId, user.id],
-            function(err) {
-                if (err) {
-                    console.error("[Edit Problem] DB Error:", err.message);
-                    return res.status(500).send("Database error while updating problem: " + err.message);
+            const user = buildUser(req);
+            const problemId = req.params.id;
+            let { title, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, description, tags, is_public } = req.body;
+            
+            const files = req.files || {};
+            const inputFile = Array.isArray(files.hidden_input_file) ? files.hidden_input_file[0] : null;
+            const outputFile = Array.isArray(files.hidden_output_file) ? files.hidden_output_file[0] : null;
+
+            if ((inputFile && !outputFile) || (!inputFile && outputFile)) {
+                return res.status(400).send('Please upload both hidden testcase files: input.txt and output.txt');
+            }
+
+            let isPublicVal = (is_public === 'on' || is_public === 'true' || is_public === '1') ? 1 : 0;
+            if (!user.isVerified) { isPublicVal = 0; }
+
+            // Set universal XP points based on difficulty
+            const getPointsFromDifficulty = (diff) => {
+                const normalizedDiff = String(diff || 'easy').toLowerCase();
+                switch (normalizedDiff) {
+                    case 'easy': return 5;
+                    case 'medium': return 10;
+                    case 'hard': return 15;
+                    default: return 5; // default to easy
                 }
-                res.redirect('/faculty/problem'); 
+            };
+            const calculatedPoints = getPointsFromDifficulty(difficulty);
+
+            const performDbUpdate = (finalHiddenTestCases) => {
+                db.run(`UPDATE problems SET title = ?, description = ?, subject = ?, difficulty = ?, points = ?, input_format = ?, output_format = ?, constraints = ?, sample_input = ?, sample_output = ?, hidden_test_cases = ?, tags = ?, is_public = ? WHERE id = ? AND faculty_id = ?`,
+                    [title, description, subject, difficulty, calculatedPoints, input_format, output_format, constraints, sample_input, sample_output, finalHiddenTestCases || hidden_test_cases || '', tags || '', isPublicVal, problemId, user.id],
+                    function(err) {
+                        if (err) {
+                            console.error("[Edit Problem] DB Error:", err.message);
+                            return res.status(500).send("Database error while updating problem: " + err.message);
+                        }
+                        
+                        // Role-aware redirect
+                        if (user.role === 'hod') return res.redirect('/college/hod/problem');
+                        if (user.role === 'hos') return res.redirect('/hos/problem');
+                        return res.redirect('/faculty/dashboard');
+                    }
+                );
+            };
+
+            if (inputFile && outputFile) {
+                // Validate filenames
+                const inputName = String(inputFile.originalname || '').trim().toLowerCase();
+                const outputName = String(outputFile.originalname || '').trim().toLowerCase();
+                if (inputName !== 'input.txt' || outputName !== 'output.txt') {
+                    return res.status(400).send('Hidden testcase files must be named exactly: input.txt and output.txt');
+                }
+
+                // Save files
+                try {
+                    const tcDir = path.join(__dirname, '..', 'public', 'uploads', 'testcases', String(problemId));
+                    if (!fs.existsSync(tcDir)) fs.mkdirSync(tcDir, { recursive: true });
+                    fs.writeFileSync(path.join(tcDir, 'input1.txt'), inputFile.buffer);
+                    fs.writeFileSync(path.join(tcDir, 'output1.txt'), outputFile.buffer);
+                    
+                    const pairJson = JSON.stringify([{ input: 'input1.txt', output: 'output1.txt' }]);
+                    performDbUpdate(pairJson);
+                } catch (fileErr) {
+                    console.error('[Edit Problem] hidden testcase file write error:', fileErr.message);
+                    return res.status(500).send('Database update skipped: failed to save hidden testcase files.');
+                }
+            } else {
+                performDbUpdate(hidden_test_cases);
             }
-        );
+        });
     });
 
     router.delete('/problem/delete/:id', requireRole(['faculty', 'hos', 'hod']), (req, res) => {
@@ -780,7 +841,7 @@ module.exports = (db) => {
                  LEFT JOIN account_users u ON c.createdBy = u.id
                  LEFT JOIN account_users ap ON c.approved_by = ap.id
                  WHERE (
-                     c.status IN ('accepted', 'upcoming') AND 
+                     c.status = 'accepted' AND 
                      (c.collegeName = ? OR u.collegeName = ?) AND
                      (
                          LOWER(c.visibility_scope) = 'global' OR 
@@ -797,10 +858,9 @@ module.exports = (db) => {
                 `SELECT p.id, p.title 
                  FROM problems p 
                  LEFT JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id 
-                 WHERE p.faculty_id = ? 
-                    OR (p.status = 'accepted' AND u.collegeName = ? AND LOWER(p.visibility_scope) = 'global')
-                    OR (p.status IN ('accepted', 'active') AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin') AND LOWER(p.visibility_scope) = 'global')`,
-                [user.id, user.collegeName]
+                 WHERE (p.status = 'accepted' AND u.collegeName = ?)
+                    OR (p.status IN ('accepted', 'active') AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))`,
+                [user.collegeName]
             );
 
             // Parse problems JSON for each contest
@@ -824,6 +884,26 @@ module.exports = (db) => {
         }
     });
 
+    // API to fetch available problems for UI problem picker
+    router.get('/api/available-problems', requireRole(['faculty', 'hos', 'hod']), async (req, res) => {
+        const user = req.session.user;
+        try {
+            const query = `
+                SELECT p.*, u.fullName as facultyName, u.role as creatorRole 
+                FROM problems p 
+                LEFT JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id 
+                WHERE (p.status = 'accepted' AND u.collegeName = ?)
+                   OR (p.status IN ('accepted', 'active') AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
+                ORDER BY p.id DESC
+            `;
+            const problems = await runQuery(query, [user.collegeName]);
+            res.json({ success: true, data: problems });
+        } catch (error) {
+            console.error("Error fetching available problems:", error);
+            res.status(500).json({ success: false, message: "Database Error" });
+        }
+    });
+
     // JSON API for faculty/HOS contest.ejs JS fetch
     router.get('/api/contests', requireRole(['faculty', 'hos', 'hod']), checkScope, async (req, res) => {
         const user = req.session.user;
@@ -834,7 +914,7 @@ module.exports = (db) => {
                  LEFT JOIN account_users u ON c.createdBy = u.id
                  LEFT JOIN account_users ap ON c.approved_by = ap.id
                  WHERE (
-                     c.status IN ('accepted', 'upcoming') AND 
+                     c.status = 'accepted' AND 
                      (c.collegeName = ? OR u.collegeName = ?) AND
                      (
                          LOWER(c.visibility_scope) = 'global' OR 
@@ -879,7 +959,7 @@ module.exports = (db) => {
             [title, startDate, endDate, registrationEndDate || deadline || null, registrationEndDate || deadline || null, computedDuration, eligibility || null, description || null, rulesAndDescription || null, guidelines || '', JSON.stringify(problems || []), user.id, user.id, user.collegeName, user.department || '', subject || '', visibilityScope, scope, level, status, hosVerified, hodVerified, isAutoApproved ? 1 : 0, approvedBy, approvedAt, 0, 'manual_hold', '[]', null],
             function(err) {
                 if (err) { console.error('Create Contest Error:', err); return res.json({ success: false, message: err.message }); }
-                res.json({ success: true, id: this.lastID });
+                res.json({ success: true, message: 'Contest created successfully!', id: this.lastID });
             }
         );
     });
@@ -896,7 +976,7 @@ module.exports = (db) => {
             function(err) {
                 if (err) { console.error('Update Contest Error:', err); return res.json({ success: false, message: err.message }); }
                 if (this.changes === 0) return res.json({ success: false, message: 'Contest not found or not authorized.' });
-                res.json({ success: true });
+                res.json({ success: true, message: 'Contest updated successfully!' });
             }
         );
     });
@@ -907,7 +987,7 @@ module.exports = (db) => {
         db.run(`DELETE FROM contests WHERE id=? AND createdBy=?`, [id, user.id], function(err) {
             if (err) { console.error('Delete Contest Error:', err); return res.json({ success: false, message: err.message }); }
             if (this.changes === 0) return res.json({ success: false, message: 'Contest not found or not authorized.' });
-            res.json({ success: true });
+            res.json({ success: true, message: 'Contest deleted successfully!' });
         });
     });
 

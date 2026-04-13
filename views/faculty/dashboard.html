@@ -218,7 +218,17 @@
             if (facultyCtx) {
                 window.facultyChart = new Chart(facultyCtx, {
                     type: "line",
-                    data: { labels: ["C1","C2","C3","C4","C5","C6"], datasets: [{ label: "Avg Score", data: [65,72,68,80,75,85], borderColor: "#1E4A7A", backgroundColor: "rgba(30,74,122,0.1)", tension: 0.3, fill: true }] },
+                    data: { 
+                        labels: <%- JSON.stringify(contestPerformance.labels) %>, 
+                        datasets: [{ 
+                            label: "Avg Score", 
+                            data: <%- JSON.stringify(contestPerformance.data) %>, 
+                            borderColor: "#1E4A7A", 
+                            backgroundColor: "rgba(30,74,122,0.1)", 
+                            tension: 0.3, 
+                            fill: true 
+                        }] 
+                    },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
                 });
             }

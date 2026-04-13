@@ -29,7 +29,7 @@
             <div class="w-full md:w-1/2 lg:w-[45%] bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden h-full">
                 <!-- Tabs -->
                 <div class="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0">
-                    <button class="px-4 py-2 border-b-2 border-blue-500 text-blue-600 dark:text-blue-400 text-sm font-medium flex items-center gap-2">
+                    <button class="px-4 py-2 border-b-2 border-primary-500 text-primary-600 dark:text-primary-400 text-sm font-medium flex items-center gap-2">
                         <i class="fas fa-file-alt"></i> Description
                     </button>
                     <button class="px-4 py-2 border-b-2 border-transparent text-gray-500 dark:text-gray-400 text-sm font-medium hover:text-gray-700 dark:hover:text-gray-300 ml-2">
@@ -56,17 +56,17 @@
                         <div class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
                             <% if (problem.input_format) { %>
                                 <h3 class="text-lg font-semibold mb-2 mt-4 text-gray-900 dark:text-white">Input Format</h3>
-                                <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap"><%= problem.input_format %></div>
+                                <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap"><%- problem.input_format %></div>
                             <% } %>
                             
                             <% if (problem.output_format) { %>
                                 <h3 class="text-lg font-semibold mb-2 mt-4 text-gray-900 dark:text-white">Output Format</h3>
-                                <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap"><%= problem.output_format %></div>
+                                <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap"><%- problem.output_format %></div>
                             <% } %>
                             
                             <% if (problem.constraints) { %>
                                 <h3 class="text-lg font-semibold mb-2 mt-4 text-gray-900 dark:text-white">Constraints</h3>
-                                <div class="bg-purple-50 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap"><%= problem.constraints %></div>
+                                <div class="bg-purple-50 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap"><%- problem.constraints %></div>
                             <% } %>
                         </div>
                     <% } %>

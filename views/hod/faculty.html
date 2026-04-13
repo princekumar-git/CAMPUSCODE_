@@ -74,6 +74,21 @@
                             </div>
 
                             <div class="flex items-center gap-3 w-full md:w-auto">
+                                <div class="relative">
+                                    <select id="departmentFilter" onchange="filterByDepartment(this.value)"
+                                        class="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-2 pl-4 pr-10 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all cursor-pointer">
+                                        <option value="">All Departments</option>
+                                        <% (allCollegeDepartments || []).forEach(dept => { %>
+                                            <option value="<%= dept %>" <%= selectedDept === dept ? 'selected' : '' %>><%= dept %></option>
+                                        <% }) %>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-400">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- <div class="flex items-center gap-3 w-full md:w-auto">
                                 <button id="btn-export-faculty"
                                     class="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm whitespace-nowrap"
                                     title="Export Data">
@@ -88,7 +103,7 @@
                                     <i class="fas fa-plus"></i>
                                     <span>Add Faculty</span>
                                 </button>
-                            </div>
+                            </div> -->
                         </div>
 
                         <div class="overflow-x-auto">
@@ -145,9 +160,13 @@
                                                 <% if (f.status === 'pending') { %>
                                                     <button onclick="confirmVerify('<%= f.id %>')" class="px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-[10px] font-bold uppercase shadow-sm">Verify</button>
                                                 <% } %>
-                                                <button onclick='openUnifiedModal("<%= f.id %>", <%- JSON.stringify(f.fullName) %>, "<%= f.role %>", <%- JSON.stringify(f.hosSubject || "") %>, <%- JSON.stringify(f.assignments || "") %>, <%- JSON.stringify(f.email || "") %>)' class="px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-bold uppercase shadow-sm">Manage</button>
-                                                <button onclick='editFaculty("<%= f.id %>", <%- JSON.stringify(f.fullName) %>, "<%= f.email %>", "<%= f.joiningDate || "" %>")' class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 transition-all"><i class="fas fa-edit text-xs"></i></button>
-                                                <button onclick="deleteFaculty('<%= f.id %>')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 transition-all"><i class="fas fa-trash-alt text-xs"></i></button>
+                                                <button onclick='openUnifiedModal("<%= f.id %>", <%- JSON.stringify(f.fullName) %>, "<%= f.role %>", <%- JSON.stringify(f.hosSubject || "") %>, <%- JSON.stringify(f.assignments || "") %>, <%- JSON.stringify(f.email || "") %>)' class="px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-bold uppercase shadow-sm" title="Assign Subjects">Manage</button>
+                                                <% if (f.department === user.department) { %>
+                                                    <button onclick='editFaculty("<%= f.id %>", <%- JSON.stringify(f.fullName) %>, "<%= f.email %>", "<%= f.joiningDate || "" %>", "<%= f.mobile || "" %>", "<%= f.gender || "" %>", "<%= f.post || "" %>")' class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-all" title="Edit Profile"><i class="fas fa-edit text-xs"></i></button>
+                                                    <button onclick="deleteFaculty('<%= f.id %>')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-all" title="Delete Account"><i class="fas fa-trash-alt text-xs"></i></button>
+                                                <% } else { %>
+                                                    <button disabled class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-400 cursor-not-allowed transition-all" title="Editing Restricted to Department HOD"><i class="fas fa-lock text-xs"></i></button>
+                                                <% } %>
                                             </div>
                                         </td>
                                     </tr>
@@ -165,11 +184,12 @@
                             <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-700/30">
                                 <div class="flex items-center gap-4">
                                     <button id="btn-back-to-faculty-list" class="w-8 h-8 rounded-full bg-white dark:bg-gray-600 flex items-center justify-center text-gray-500 hover:text-primary-600"><i class="fas fa-arrow-left text-sm"></i></button>
-                                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Add New Faculty</h2>
+                                    <h2 id="faculty-form-title" class="text-xl font-bold text-gray-800 dark:text-white">Add New Faculty</h2>
                                 </div>
                             </div>
                             <div class="p-8">
-                                <form action="/college/hod/faculty/create" method="POST" class="space-y-6">
+                                <form id="facultyMainForm" action="/college/hod/faculty/create" method="POST" class="space-y-6">
+                                    <input type="hidden" name="id" id="facultyEditId">
                                     <input type="hidden" name="department" value="<%= user.department %>">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div class="md:col-span-2">
@@ -181,6 +201,10 @@
                                             <input type="email" name="email" class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2.5" required>
                                         </div>
                                         <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Mobile Number</label>
+                                            <input type="tel" name="mobile" class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2.5">
+                                        </div>
+                                        <div>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Designation</label>
                                             <select name="post" class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2.5">
                                                 <option>Professor</option>
@@ -189,10 +213,23 @@
                                                 <option>Lecturer</option>
                                             </select>
                                         </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Gender</label>
+                                            <select name="gender" class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2.5">
+                                                <option value="">Select Gender</option>
+                                                <option value="Male">Male</option>
+                                                <option value="Female">Female</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Joining Date</label>
+                                            <input type="date" name="joiningDate" class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2.5">
+                                        </div>
                                     </div>
                                     <div class="flex justify-end gap-3 pt-6 border-t border-gray-100 dark:border-gray-700">
                                         <button type="button" id="btn-cancel-faculty-edit" class="px-5 py-2.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg">Cancel</button>
-                                        <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg shadow-md">Register Faculty</button>
+                                        <button type="submit" id="faculty-form-submit" class="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg shadow-md">Register Faculty</button>
                                     </div>
                                 </form>
                             </div>
@@ -204,15 +241,86 @@
     </div>
 
     <!-- Modals (Simplified for restoration) -->
+    <!-- Unified Assignment Modal -->
     <div id="unifiedModal" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
-        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-3xl shadow-2xl p-8 overflow-hidden">
-             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Unified Assignment Console</h3>
-                <button onclick="closeUnifiedModal()"><i class="fas fa-times text-gray-400"></i></button>
-             </div>
-             <p id="modalTargetName" class="text-sm text-gray-500 mb-6"></p>
-             <!-- Form and Tab content for roles/assignments -->
-             <div class="text-center py-10 text-gray-500 italic">Console integrated via script.</div>
+        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-700/20">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">Unified Assignment Console</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400" id="modalTargetName"></p>
+                </div>
+                <button onclick="closeUnifiedModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-8">
+                <!-- Tab Headers -->
+                <div class="flex gap-4 mb-8 border-b border-gray-100 dark:border-gray-700 pb-px">
+                    <button id="tab-promote" onclick="showTab('promote')" class="pb-3 text-sm font-bold border-b-2 border-primary-500 text-primary-600 dark:text-primary-400 transition-all">Role & Promotion</button>
+                    <button id="tab-assign" onclick="showTab('assign')" class="pb-3 text-sm font-bold border-b-2 border-transparent text-primary-600 dark:text-primary-400 transition-all">Subject Assignment</button>
+                </div>
+
+                <!-- Tab content: Promote to HOS -->
+                <div id="content-promote" class="space-y-6">
+                    <form id="promoteForm" class="space-y-4">
+                        <input type="hidden" name="id" id="promoteUserId">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Designated Role</label>
+                            <select id="roleSelect" name="role" onchange="togglePromoSubject()" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                <option value="faculty">Faculty Member</option>
+                                <option value="hos">Head of Studies (HOS)</option>
+                            </select>
+                        </div>
+                        <div id="promoSubjectContainer" class="hidden">
+                            <label class="block text-xs font-bold text-gray-400 dark:text-gray-300 uppercase tracking-widest mb-2">Assign Master Subject</label>
+                            <select name="subject" id="promoSubject" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                <option value="">Select a Subject...</option>
+                                <% (dropdownData.subjects || []).forEach(s => { %>
+                                    <option value="<%= s %>"><%= s %></option>
+                                <% }) %>
+                            </select>
+                            <p class="mt-2 text-[10px] text-primary-500 dark:text-primary-400 font-medium italic"><i class="fas fa-magic mr-1"></i> Promotion to HOS triggers automated bulk-assignment for every section of this subject.</p>
+                        </div>
+                        <div class="pt-6">
+                            <button type="submit" class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95">Update Primary Role</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab content: Assign Subject -->
+                <div id="content-assign" class="hidden space-y-6">
+                    <form id="assignForm" class="space-y-4">
+                        <input type="hidden" name="facultyId" id="assignUserId">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 dark:text-gray-300 uppercase tracking-widest mb-2">Select Subject</label>
+                            <select name="subjectName" id="mainSubjectSelect" onchange="handleSubjectChange()" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                <option value="">Choose Subject</option>
+                                <% (dropdownData.subjects || []).forEach(s => { %>
+                                    <option value="<%= s %>"><%= s %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 dark:text-gray-300 uppercase tracking-widest mb-2">Year</label>
+                                <select name="assignedYears" id="yearSelect" onchange="handleYearChange()" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500" disabled>
+                                    <option value="">Select Year</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 dark:text-gray-300 uppercase tracking-widest mb-2">Section</label>
+                                <select name="assignedSections" id="sectionSelect" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 text-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500" disabled>
+                                    <option value="">Select Section</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="pt-6">
+                            <button type="submit" id="btnSubmitAssign" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">Assign Academic Load</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -235,16 +343,200 @@
             const listSection = document.getElementById('section-manage-faculty');
             const formSection = document.getElementById('faculty-form-view');
 
-            if (btnAdd) btnAdd.onclick = () => { listSection.classList.add('hidden'); formSection.classList.remove('hidden'); };
+            if (btnAdd) btnAdd.onclick = () => { 
+                document.getElementById('faculty-form-title').textContent = 'Add New Faculty';
+                document.getElementById('facultyMainForm').action = '/college/hod/faculty/create';
+                document.getElementById('faculty-form-submit').textContent = 'Register Faculty';
+                document.getElementById('facultyEditId').value = '';
+                document.getElementById('facultyMainForm').reset();
+                listSection.classList.add('hidden'); 
+                formSection.classList.remove('hidden'); 
+            };
             if (btnBack) btnBack.onclick = () => { listSection.classList.remove('hidden'); formSection.classList.add('hidden'); };
             if (btnCancel) btnCancel.onclick = () => { listSection.classList.remove('hidden'); formSection.classList.add('hidden'); };
         });
 
+        function editFaculty(id, name, email, date, mobile, gender, post) {
+            const listSection = document.getElementById('section-manage-faculty');
+            const formSection = document.getElementById('faculty-form-view');
+            const form = document.getElementById('facultyMainForm');
+            
+            document.getElementById('faculty-form-title').textContent = 'Edit Faculty Profile';
+            document.getElementById('faculty-form-submit').textContent = 'Save Changes';
+            form.action = '/college/hod/faculty/update';
+            
+            document.getElementById('facultyEditId').value = id;
+            form.querySelector('input[name="fullName"]').value = name;
+            form.querySelector('input[name="email"]').value = email;
+            form.querySelector('input[name="mobile"]').value = mobile;
+            form.querySelector('select[name="gender"]').value = gender;
+            form.querySelector('select[name="post"]').value = post;
+            form.querySelector('input[name="joiningDate"]').value = date;
+            
+            listSection.classList.add('hidden');
+            formSection.classList.remove('hidden');
+        }
+
         // Modal placeholders
-        function openUnifiedModal(id, name, role) { document.getElementById('unifiedModal').classList.remove('hidden'); document.getElementById('modalTargetName').innerText = name; }
-        function closeUnifiedModal() { document.getElementById('unifiedModal').classList.add('hidden'); }
-        async function verifyFaculty(id) { if(confirm('Verify?')) location.reload(); }
-        async function deleteFaculty(id) { if(confirm('Delete?')) fetch('/college/hod/api/delete-faculty', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})}).then(()=>location.reload()); }
+        function openUnifiedModal(id, name, role, subject, assignments, email) {
+            document.getElementById('modalTargetName').textContent = `Configuring: ${name}`;
+            document.getElementById('promoteUserId').value = id;
+            document.getElementById('assignUserId').value = id;
+            document.getElementById('roleSelect').value = role;
+            document.getElementById('promoSubject').value = subject || "";
+            
+            togglePromoSubject();
+            document.getElementById('unifiedModal').classList.remove('hidden');
+        }
+
+        function closeUnifiedModal() {
+            document.getElementById('unifiedModal').classList.add('hidden');
+        }
+
+        function showTab(tab) {
+            const btnPromote = document.getElementById('tab-promote');
+            const btnAssign = document.getElementById('tab-assign');
+            const contentPromote = document.getElementById('content-promote');
+            const contentAssign = document.getElementById('content-assign');
+
+            if (tab === 'promote') {
+                btnPromote.classList.add('border-primary-500');
+                btnPromote.classList.remove('border-transparent');
+                
+                btnAssign.classList.add('border-transparent');
+                btnAssign.classList.remove('border-primary-500');
+
+                contentPromote.classList.remove('hidden');
+                contentAssign.classList.add('hidden');
+            } else {
+                btnAssign.classList.add('border-primary-500');
+                btnAssign.classList.remove('border-transparent');
+                
+                btnPromote.classList.add('border-transparent');
+                btnPromote.classList.remove('border-primary-500');
+
+                contentAssign.classList.remove('hidden');
+                contentPromote.classList.add('hidden');
+            }
+        }
+
+        function togglePromoSubject() {
+            const role = document.getElementById('roleSelect').value;
+            const container = document.getElementById('promoSubjectContainer');
+            if (role === 'hos') {
+                container.classList.remove('hidden');
+                document.getElementById('promoSubject').required = true;
+            } else {
+                container.classList.add('hidden');
+                document.getElementById('promoSubject').required = false;
+            }
+        }
+
+        function handleSubjectChange() {
+            const subject = document.getElementById('mainSubjectSelect').value;
+            const yearSelect = document.getElementById('yearSelect');
+            const sectionSelect = document.getElementById('sectionSelect');
+            const btn = document.getElementById('btnSubmitAssign');
+
+            // Reset
+            yearSelect.innerHTML = '<option value="">Select Year</option>';
+            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+            yearSelect.disabled = true;
+            sectionSelect.disabled = true;
+            btn.disabled = true;
+
+            if (subject && subjectMapping[subject]) {
+                const uniqueYears = [...new Set(subjectMapping[subject].map(m => m.year))];
+                uniqueYears.sort().forEach(y => {
+                    const opt = document.createElement('option');
+                    opt.value = y;
+                    opt.textContent = y;
+                    yearSelect.appendChild(opt);
+                });
+                yearSelect.disabled = false;
+            }
+        }
+
+        function handleYearChange() {
+            const subject = document.getElementById('mainSubjectSelect').value;
+            const year = document.getElementById('yearSelect').value;
+            const sectionSelect = document.getElementById('sectionSelect');
+            const btn = document.getElementById('btnSubmitAssign');
+
+            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+            sectionSelect.disabled = true;
+            btn.disabled = true;
+
+            if (subject && year && subjectMapping[subject]) {
+                const availableSections = subjectMapping[subject]
+                    .filter(m => m.year === year)
+                    .map(m => m.section);
+                
+                availableSections.sort().forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sectionSelect.appendChild(opt);
+                });
+                sectionSelect.disabled = false;
+                btn.disabled = false;
+            }
+        }
+
+        // Form Submissions
+        document.getElementById('promoteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('promoteUserId').value;
+            const role = document.getElementById('roleSelect').value;
+            const subject = document.getElementById('promoSubject').value;
+
+            try {
+                const res = await fetch('/college/hod/api/assign-role', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, role, subject })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || data.message || 'Promotion failed');
+                }
+            } catch (err) {
+                alert('Connection error');
+            }
+        });
+
+        document.getElementById('assignForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const body = Object.fromEntries(formData.entries());
+
+            try {
+                const res = await fetch('/college/hod/api/assign-sections', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || data.message || 'Assignment failed');
+                }
+            } catch (err) {
+                alert('Connection error');
+            }
+        });
+        function filterByDepartment(val) {
+            const url = new URL(window.location.href);
+            if (val) url.searchParams.set('dept', val);
+            else url.searchParams.delete('dept');
+            window.location.href = url.toString();
+        }
+
+        async function verifyFaculty(id) { if(confirm('Verify Faculty?')) location.reload(); }
+        async function deleteFaculty(id) { if(confirm('Are you sure you want to delete this faculty account permanentely?')) fetch('/college/hod/api/delete-faculty', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})}).then(()=>location.reload()); }
     </script>
     <script src="/js/Hod/index1_logic.js"></script>
 </body>

@@ -60,17 +60,6 @@
             padding-right: 0;
         }
 
-        .nav-item.active {
-            background-color: #E7F0FA;
-            color: #1E4A7A;
-            border-right: 4px solid #1E4A7A;
-        }
-
-        .dark .nav-item.active {
-            background-color: #1F2937;
-            color: #60A5FA;
-            border-right: 4px solid #60A5FA;
-        }
 
         @keyframes fadeIn {
             from {
@@ -1010,8 +999,8 @@
                 function renderContests() {
                     const now = new Date();
 
-                    const upcoming = allContests.filter(c => c.status === 'upcoming' || c.status === 'accepted' || new Date(c.date || c.startDate) > now);
-                    const past = allContests.filter(c => c.status === 'past' || (c.deadline || c.endDate ? new Date(c.deadline || c.endDate) < now : false));
+                    const upcoming = allContests.filter(c => c.status === 'accepted' && new Date(c.endDate || c.deadline || c.date) > now);
+                    const past = allContests.filter(c => c.status === 'accepted' && new Date(c.endDate || c.deadline || c.date) <= now);
                     const currentUserId = Number(<%= user.id %>);
                     const myContests = allContests.filter(c => Number(c.createdBy) === currentUserId);
 
@@ -1110,7 +1099,7 @@
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-1 flex-wrap">
                                 <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate uppercase">${contest.title}</h3>
-                                ${getVerificationBadge(contest)}
+                                ${listType !== 'upcoming' ? getVerificationBadge(contest) : ''}
                             </div>
                             <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
                                 <span class="flex items-center gap-1.5"><i class="far fa-calendar-alt text-primary-500/70"></i> ${dateStr} at ${timeStr}</span>
@@ -1399,12 +1388,12 @@
                             });
                             const data = await res.json();
                             if (data.success) {
-                                alert(data.message);
+                                alert(data.message || 'Action completed successfully!');
                                 await fetchContests();
                                 renderContests();
                                 closeForm();
                             } else {
-                                alert("Error: " + data.message);
+                                alert("Error: " + (data.message || 'Unknown error occurred.'));
                             }
                         } catch (err) {
                             console.error("Submission Error:", err);
@@ -1579,6 +1568,7 @@
                         });
                         const data = await res.json();
                         if (data.success) {
+                            alert(data.message || 'Contest deleted successfully!');
                             await fetchContests();
                             renderContests();
                         }

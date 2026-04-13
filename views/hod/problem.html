@@ -385,7 +385,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                                <% problems.forEach(p => { %>
+                                                <% problems.filter(p => p.status === 'accepted' || p.status === 'active' || (p.isVerified && String(p.visibility_scope||'').toLowerCase() === 'global')).forEach(p => { %>
                                                 <tr data-problem-id="<%= p.id %>"
                                                     data-problem-title="<%- (p.title || '').toLowerCase() %>"
                                                     data-problem-subject="<%- (p.subject || '').toLowerCase() %>"
@@ -401,7 +401,7 @@
                                                     <td class="px-6 py-4 py-3">
                                                         <div class="text-sm font-medium text-gray-900 dark:text-white">
                                                             <%= p.title %></div>
-                                                        <div class="text-xs text-gray-500"><%= p.tags || 'N/A' %></div>
+                                                        <div class="text-xs text-gray-500 dark:text-gray-400"><%= p.tags || 'N/A' %></div>
                                                     </td>
                                                     <td class="px-6 py-4">
                                                         <span
@@ -435,6 +435,7 @@
                                                     class="text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 uppercase tracking-wider">
                                                     <th class="px-6 py-3">Title</th>
                                                     <th class="px-6 py-3">Difficulty</th>
+                                                    <th class="px-6 py-3">Status</th>
                                                     <th class="px-6 py-3 text-right">Actions</th>
                                                 </tr>
                                             </thead>
@@ -449,11 +450,26 @@
                                                      <td class="px-6 py-4">
                                                          <div class="text-sm font-medium text-gray-900 dark:text-white">
                                                              <%= p.title %></div>
-                                                         <div class="text-xs text-gray-500"><%= p.subject %></div>
+                                                         <div class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400"><%= p.subject %></div>
                                                      </td>
                                                      <td class="px-6 py-4">
                                                          <span
                                                              class="px-2 py-1 text-xs font-medium rounded-full <%= p.difficulty === 'Easy' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : p.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' %>"><%= p.difficulty %></span>
+                                                     </td>
+                                                     <td class="px-6 py-4">
+                                                        <% if (p.status === 'accepted' || p.status === 'active' || p.isVerified) { %>
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                                                <i class="fas fa-check-circle text-xs"></i> Accepted
+                                                            </span>
+                                                        <% } else if (p.status === 'rejected') { %>
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                                                                <i class="fas fa-times-circle text-xs"></i> Rejected
+                                                            </span>
+                                                        <% } else { %>
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                                                <i class="fas fa-clock text-xs"></i> Pending
+                                                            </span>
+                                                        <% } %>
                                                      </td>
                                                      <td class="px-6 py-4 text-right">
                                                          <div class="flex justify-end items-center gap-2">
@@ -464,9 +480,10 @@
                                                              <button class="bookmark-btn p-1.5 inline-block rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-yellow-500 transition-colors" title="Bookmark">
                                                                  <i class="<%= hodCreatedIsBookmarked ? 'fas text-yellow-400' : 'far' %> fa-bookmark"></i>
                                                              </button>
-                                                             <a href="/faculty/problem/edit/<%= p.id %>"
+                                                             <button 
+                                                                 onclick="openEditProblemView(<%= JSON.stringify(p) %>)"
                                                                  class="p-1.5 inline-block rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 hover:text-blue-700 transition-colors"
-                                                                 title="Edit"><i class="fas fa-edit"></i></a>
+                                                                 title="Edit"><i class="fas fa-edit"></i></button>
                                                              <button
                                                                  class="delete-db-problem-btn p-1.5 inline-block rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 hover:text-red-700 transition-colors"
                                                                  data-id="<%= p.id %>"
@@ -503,7 +520,7 @@
                                                             class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
                                                             <td class="px-6 py-4">
                                                                 <div class="text-sm font-medium text-gray-900 dark:text-white"><%= problem.title %></div>
-                                                                <div class="text-xs text-gray-500"><%= problem.subject || problem.tags || 'N/A' %></div>
+                                                                <div class="text-xs text-gray-500 dark:text-gray-400"><%= problem.subject || problem.tags || 'N/A' %></div>
                                                             </td>
                                                             <td class="px-6 py-4">
                                                                 <span class="px-2 py-1 text-xs font-medium rounded-full <%= problem.difficulty === 'Easy' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : problem.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' %>"><%= problem.difficulty %></span>
@@ -537,10 +554,11 @@
                                 class="text-gray-500 hover:text-primary-600 transition-colors">
                                 <i class="fas fa-arrow-left"></i>
                             </button>
-                            <h2 class="text-xl font-bold text-gray-800 dark:text-white">Create New Problem</h2>
+                            <h2 id="problem-form-title" class="text-xl font-bold text-gray-800 dark:text-white">Create New Problem</h2>
                         </div>
 
                         <form id="create-problem-form" class="space-y-6" action="/faculty/problem/create" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" id="edit-problem-id" name="problem_id">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label
@@ -579,17 +597,19 @@
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Attach Hidden Tests</label>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Upload exactly two files: <code>input.txt</code> and <code>output.txt</code>.</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400 mb-3">Upload exactly two files: <code>input.txt</code> and <code>output.txt</code>.</p>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div>
                                             <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">input.txt</label>
-                                            <input type="file" name="hidden_input_file" accept=".txt"
+                                            <input type="file" id="hidden_input_file" name="hidden_input_file" accept=".txt"
                                                 class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2 text-gray-900 dark:text-white">
+                                            <p id="existing-input-file" class="text-xs text-primary-500 mt-1 hidden"></p>
                                         </div>
                                         <div>
                                             <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">output.txt</label>
-                                            <input type="file" name="hidden_output_file" accept=".txt"
+                                            <input type="file" id="hidden_output_file" name="hidden_output_file" accept=".txt"
                                                 class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2 text-gray-900 dark:text-white">
+                                            <p id="existing-output-file" class="text-xs text-primary-500 mt-1 hidden"></p>
                                         </div>
                                     </div>
                                 </div>
@@ -634,15 +654,15 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-900/20">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Created By</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">Created By</p>
                                     <p class="text-sm font-semibold text-gray-800 dark:text-gray-200"><%= user.fullName %></p>
                                 </div>
                                 <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-900/20">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Created At</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">Created At</p>
                                     <p class="text-sm font-semibold text-gray-800 dark:text-gray-200"><%= new Date().toLocaleString() %></p>
                                 </div>
                                 <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-900/20">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Approved By</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">Approved By</p>
                                     <p class="text-sm font-semibold text-gray-800 dark:text-gray-200">Auto-approved for HOD</p>
                                 </div>
                             </div>
@@ -681,11 +701,11 @@
         <div class="p-2">
             <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
                 <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Contest Reminder</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">Weekly contest starts in 1 hour.</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">Weekly contest starts in 1 hour.</p>
             </div>
             <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
                 <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">New Student Joined</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">Alex joined CS101.</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">Alex joined CS101.</p>
             </div>
         </div>
     </div>
@@ -768,11 +788,11 @@
 
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
-                        <p class="text-xs text-gray-500 uppercase font-semibold">Faculty ID</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">Faculty ID</p>
                         <p class="text-sm font-bold text-gray-800 dark:text-gray-200">FAC-<%= user.id %></p>
                     </div>
                     <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
-                        <p class="text-xs text-gray-500 uppercase font-semibold">Joined</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">Joined</p>
                         <p class="text-sm font-bold text-gray-800 dark:text-gray-200"><%= user.joiningDate || 'Unknown' %></p>
                     </div>
                 </div>
@@ -788,113 +808,6 @@
                         <i class="fas fa-chevron-right text-xs text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400"></i>
                     </button>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- EDIT PROBLEM MODAL -->
-    <div id="editProblemModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
-        <div
-            class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto animate-fadeIn">
-            <!-- Modal Header -->
-            <div
-                class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
-                <div class="flex items-center gap-3">
-                    <div
-                        class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-                        <i class="fas fa-edit text-primary-600 dark:text-primary-400"></i>
-                    </div>
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Edit Problem</h2>
-                </div>
-                <button id="closeEditModal"
-                    class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
-                    <i class="fas fa-times text-gray-500 dark:text-gray-400"></i>
-                </button>
-            </div>
-
-            <!-- Modal Body -->
-            <form id="editProblemForm" class="p-6 space-y-6">
-                <!-- Hidden field for problem ID -->
-                <input type="hidden" id="editProblemId">
-
-                <!-- Problem Title -->
-                <div>
-                    <label for="editProblemTitle"
-                        class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Problem Title <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" id="editProblemTitle" required
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
-                        placeholder="e.g., Two Sum">
-                </div>
-
-                <!-- Tags/Topics -->
-                <div>
-                    <label for="editProblemTags"
-                        class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Tags/Topics <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" id="editProblemTags" required
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
-                        placeholder="e.g., Arrays, Hash Table, Two Pointers">
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Separate multiple tags with commas</p>
-                </div>
-
-                <!-- Difficulty -->
-                <div>
-                    <label for="editProblemDifficulty"
-                        class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Difficulty <span class="text-red-500">*</span>
-                    </label>
-                    <select id="editProblemDifficulty" required
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
-                        <option value="">Select difficulty...</option>
-                        <option value="Easy">Easy</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
-                    </select>
-                </div>
-
-                <!-- Description -->
-                <div>
-                    <label for="editProblemDescription"
-                        class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Description (Optional)
-                    </label>
-                    <textarea id="editProblemDescription" rows="5"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all resize-none"
-                        placeholder="Provide a brief description of the problem..."></textarea>
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">This will be displayed for reference only
-                    </p>
-                </div>
-
-                <!-- Status Badge Preview -->
-                <div class="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                    <p class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">Preview:</p>
-                    <div class="flex items-center gap-3">
-                        <span id="previewProblemTitle" class="text-sm font-medium text-gray-900 dark:text-white">Two
-                            Sum</span>
-                        <span id="previewDifficultyBadge"
-                            class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">Medium</span>
-                    </div>
-                    <p id="previewProblemTags" class="text-xs text-gray-500 dark:text-gray-400 mt-2">Arrays, Hash Table
-                    </p>
-                </div>
-            </form>
-
-            <!-- Modal Footer -->
-            <div
-                class="sticky bottom-0 bg-gray-50 dark:bg-gray-700/30 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-end gap-3">
-                <button type="button" id="cancelEditBtn"
-                    class="px-5 py-2.5 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                    Cancel
-                </button>
-                <button type="submit" form="editProblemForm" id="saveEditBtn"
-                    class="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors shadow-sm flex items-center gap-2">
-                    <i class="fas fa-save"></i>
-                    Save Changes
-                </button>
             </div>
         </div>
     </div>
@@ -926,13 +839,97 @@
         const problemTitle = document.getElementById('problem-title');
         const problemSubject = document.getElementById('problem-subject');
         const problemDifficulty = document.getElementById('problem-difficulty');
+        const problemTags = document.getElementById('problem-tags');
         const problemFormView = document.getElementById('problem-form-view');
         const problemListView = document.getElementById('problems-list-container');
         const btnBackToList = document.getElementById('btn-back-to-list');
         const btnCancelProblem = document.getElementById('btn-cancel-problem');
+        const editProblemId = document.getElementById('edit-problem-id');
+        const problemFormTitle = document.getElementById('problem-form-title');
 
         if (problemFormView) problemFormView.classList.add('hidden');
         if (problemListView) problemListView.classList.remove('hidden');
+
+        // Function to open the form for editing
+        window.openEditProblemView = function(problem) {
+            if (!problemFormView || !problemListView) return;
+
+            // Switch views
+            problemListView.classList.add('hidden');
+            problemFormView.classList.remove('hidden');
+
+            // Set Form Mode
+            problemFormTitle.textContent = "Edit Problem";
+            problemForm.action = `/faculty/problem/edit/${problem.id}`;
+            editProblemId.value = problem.id;
+
+            // Pre-populate basic fields
+            problemTitle.value = problem.title || '';
+            problemSubject.value = problem.subject || '';
+            problemDifficulty.value = problem.difficulty || 'Easy';
+            problemTags.value = problem.tags || '';
+
+            // Pre-populate other fields
+            document.querySelector('[name="input_format"]').value = problem.input_format || '';
+            document.querySelector('[name="output_format"]').value = problem.output_format || '';
+            document.querySelector('[name="constraints"]').value = problem.constraints || '';
+            document.querySelector('[name="sample_input"]').value = problem.sample_input || '';
+            document.querySelector('[name="sample_output"]').value = problem.sample_output || '';
+
+            // Pre-populate Quill editor
+            if (quillEditor) {
+                quillEditor.root.innerHTML = problem.description || '';
+            }
+
+            // Handle hidden test cases display
+            const existingInputLabel = document.getElementById('existing-input-file');
+            const existingOutputLabel = document.getElementById('existing-output-file');
+            
+            if (problem.hidden_test_cases) {
+                try {
+                    const tcs = JSON.parse(problem.hidden_test_cases);
+                    if (tcs && tcs.length > 0) {
+                        existingInputLabel.textContent = `Existing: ${tcs[0].input}`;
+                        existingInputLabel.classList.remove('hidden');
+                        existingOutputLabel.textContent = `Existing: ${tcs[0].output}`;
+                        existingOutputLabel.classList.remove('hidden');
+                    } else {
+                        existingInputLabel.classList.add('hidden');
+                        existingOutputLabel.classList.add('hidden');
+                    }
+                } catch (e) {
+                    existingInputLabel.classList.add('hidden');
+                    existingOutputLabel.classList.add('hidden');
+                }
+            } else {
+                existingInputLabel.classList.add('hidden');
+                existingOutputLabel.classList.add('hidden');
+            }
+
+            // Scroll to top of form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // Reset form for "Create Problem" logic
+        window.openCreateProblemView = function() {
+            if (!problemFormView || !problemListView) return;
+            
+            problemListView.classList.add('hidden');
+            problemFormView.classList.remove('hidden');
+
+            // Reset Form Mode
+            problemFormTitle.textContent = "Create New Problem";
+            problemForm.action = "/faculty/problem/create";
+            problemForm.reset();
+            editProblemId.value = "";
+            
+            if (quillEditor) {
+                quillEditor.root.innerHTML = '';
+            }
+
+            document.getElementById('existing-input-file').classList.add('hidden');
+            document.getElementById('existing-output-file').classList.add('hidden');
+        };
 
         if (problemForm) {
             problemForm.addEventListener('submit', (e) => {
@@ -990,6 +987,15 @@
             btnCancelProblem.addEventListener('click', () => {
                 problemFormView.classList.add('hidden');
                 problemListView.classList.remove('hidden');
+            });
+        }
+
+        // Hook up "Create Problem" button
+        const createBtnInList = document.getElementById('btn-create-problem');
+        if (createBtnInList) {
+            createBtnInList.addEventListener('click', (e) => {
+                e.preventDefault();
+                openCreateProblemView();
             });
         }
     </script>
