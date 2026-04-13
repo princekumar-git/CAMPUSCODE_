@@ -454,10 +454,8 @@ module.exports = (db, transporter) => {
             SELECT 
                 u.*,
                 (SELECT COUNT(*) FROM contests WHERE createdBy = u.id AND status = 'accepted') AS contests_created,
-<<<<<<< HEAD
                 (SELECT COUNT(*) FROM problems WHERE faculty_id = u.id AND status = 'accepted') AS problems_created
             FROM users u
-=======
                 (SELECT COUNT(*) FROM problems WHERE faculty_id = u.id AND status = 'accepted') AS problems_created,
                 
                 -- ==========================================
@@ -479,22 +477,18 @@ module.exports = (db, transporter) => {
                 ELSE NULL END AS college_rank
                 
             FROM account_users u
->>>>>>> c2c38a5 (match profile overlay)
             WHERE u.collegeName = ? AND u.role IN ('student', 'faculty', 'hod', 'hos') AND u.status = 'active'
             ORDER BY u.id DESC
         `;
 
-<<<<<<< HEAD
         db.all(query, [collegeName], (err, rows) => {
             if (err) return res.status(500).json({ success: false, error: err.message });
-=======
         // Note: We now pass collegeName TWICE because there are two '?' placeholders in the query
         db.all(query, [collegeName, collegeName], (err, rows) => {
             if (err) {
                 console.error("Error fetching users:", err.message);
                 return res.status(500).json({ success: false, error: err.message });
             }
->>>>>>> c2c38a5 (match profile overlay)
             res.json({ success: true, users: rows });
         });
     });

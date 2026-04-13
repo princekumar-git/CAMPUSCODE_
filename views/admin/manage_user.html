@@ -488,9 +488,7 @@ if (themeToggleBtn) {
     });
 }
 
-<<<<<<< HEAD
 // ====== DYNAMIC DATA LOGIC ======
-=======
 document.addEventListener('DOMContentLoaded', () => {
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const themeIcon = document.getElementById('themeIcon'); 
@@ -521,7 +519,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 // ====== DYNAMIC DATA & RENDER LOGIC ======
 // ==========================================
->>>>>>> c2c38a5 (match profile overlay)
 let activeTab = localStorage.getItem('activeTab') || 'student';
 let modalUserType = 'student';
 let users = [];
@@ -1009,10 +1006,7 @@ function openEditModal(userId) {
     document.getElementById('modalTitle').innerText = 'Edit Member';
     document.getElementById('modalSaveBtn').innerText = 'Update User';
     
-<<<<<<< HEAD
     // Pass the user data into the render function to pre-fill
-=======
->>>>>>> c2c38a5 (match profile overlay)
     setModalUserType(user.type, user);
     
     document.getElementById('addModal').classList.remove('hidden');
