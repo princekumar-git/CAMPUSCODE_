@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CampusCode</title>
-
+<link rel="icon" href="/campuscode-logo.jpeg" type="image/jpeg" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
@@ -430,7 +430,12 @@
                             <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                         </button>
                     </a>
-
+ <a href="setting.html">
+                            <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                <div class="flex items-center gap-3"><i class="fas fa-cog text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> System Setting</span></div>
+                                <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                            </button>
+                        </a>
                     <button id="logoutBtn" onclick="handleLogout()"
                         class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
                         <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
@@ -647,12 +652,15 @@
                     if (res.ok) {
                         const data = await res.json();
 
+                        // Use the correctly supplied nested stats from the new backend route
                         if (data.stats) {
-                            activeLogins = data.stats.activeLogins;
-                            totalUsers = data.stats.totalUsers;
+                            activeLogins = data.stats.activeLogins || 0;
+                            totalUsers = data.stats.totalUsers || 0;
 
                             const contestEl = document.getElementById('statContests');
-                            if (contestEl) contestEl.textContent = data.stats.totalContests;
+                            if (contestEl && data.stats.totalContests !== undefined) {
+                                contestEl.textContent = data.stats.totalContests;
+                            }
                         }
 
                         renderDashboardWidgets(data);
@@ -664,7 +672,7 @@
                 // 6. Render Charts
                 fetchChartData(studentCount, facultyCount, activeLogins, totalUsers);
 
-                // 7. Update Profile Overlay Stats
+                // 7. Update Profile Overlay Stats & guarantee main dashboard contest stat
                 try {
                     const [contestsRes, usersRes, programsRes] = await Promise.all([
                         fetch('/college/api/contests'),
@@ -677,8 +685,15 @@
                     const programsData = await programsRes.json();
 
                     if (contestsData.success) {
+                        const contestsArray = contestsData.data || [];
                         const el = document.getElementById('overlayStatContests');
-                        if(el) el.textContent = contestsData.data.length || 0;
+                        if(el) el.textContent = contestsArray.length || 0;
+
+                        // Guarantee Dashboard update in case dashboard-data is delayed or missed
+                        const mainContestEl = document.getElementById('statContests');
+                        if(mainContestEl && (mainContestEl.textContent === '0' || mainContestEl.textContent === '')) {
+                            mainContestEl.textContent = contestsArray.length || 0;
+                        }
                     }
                     
                     if (usersData.success || usersData.users) { 
@@ -772,7 +787,7 @@
 
                 if (lineRes.ok) {
                     const stats = await lineRes.json();
-                    if (stats.labels && stats.data) {
+                    if (stats.labels && stats.labels.length > 0) {
                         labels = stats.labels;
                         baseData = stats.data;
                     }

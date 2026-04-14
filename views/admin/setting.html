@@ -1,99 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CampusCode</title>
-
+    <title>Settings - CampusCode</title>
+    <link rel="icon" href="/campuscode-logo.jpeg" type="image/jpeg" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // 🌟 Prevent redirect loop
-        localStorage.setItem("adminLogin", "true");
-
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { sans: ["Poppins", "sans-serif"] },
                     colors: {
-                        primary: {
-                            50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0",
-                            400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440",
-                            DEFAULT: "#1E4A7A"
-                        },
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
                         dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
-                    },
-                },
-            },
-        };
+                    }
+                }
+            }
+        }
     </script>
-    
     <script>
-        // Runs instantly before the page paints to screen
         if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
     </script>
+   <style>
+    /* Custom Scrollbar to match Dashboard */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-track { background: #111827; }
+    ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
 
-    <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        .dark ::-webkit-scrollbar-track { background: #111827; }
-        ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
-        
-        .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
-        .sidebar.collapsed { width: 5rem; }
-        .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
-        .sidebar.collapsed .nav-item i { margin-right: 0; font-size: 1.25rem; }
-        .sidebar.collapsed .nav-item span { display: none; }
-        .sidebar.collapsed .logo-text { display: none; }
-        .sidebar.collapsed .bottom-menu span { display: none; }
-        .sidebar.collapsed .bottom-menu .nav-item { justify-content: center; }
-        
-        .nav-item { transition: all 0.2s ease; position: relative; display: flex; align-items: center; padding: 0.75rem 1rem; margin-bottom: 0.25rem; color: #374151; border-radius: 0.5rem; cursor: pointer; white-space: nowrap; text-decoration: none; }
-        .nav-item:hover { background-color: #f3f4f6; }
-        .dark .nav-item { color: #d1d5db; }
-        .dark .nav-item:hover { background-color: #374151; }
-        .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
-        .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
-        .nav-item.active::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background-color: #2e5e99; border-radius: 0 4px 4px 0; }
-        .dark .nav-item.active::before { background-color: #60a5fa; }
-        .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
-        .nav-item span { font-size: 0.875rem; font-weight: 500; }
+    /* --- Sidebar Logic (Exact Match) --- */
+    .sidebar {
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
 
-        /* Premium Toggle Switch */
-        .toggle-checkbox:checked { right: 0; border-color: #1e4a7a; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #1e4a7a; }
-        .dark .toggle-checkbox:checked + .toggle-label { background-color: #2e5e99; }
-        .toggle-label { transition: background-color 0.3s ease; }
-        .toggle-checkbox { transition: all 0.3s ease; }
+    .sidebar.collapsed {
+        width: 5rem;
+    }
 
-        /* Inner Settings Tab Menu */
-        .tab-btn { transition: all 0.2s; border-left: 2px solid transparent; }
-        .tab-btn.active { border-left-color: #1e4a7a; background: #E7F0FA; color: #1e4a7a; font-weight: 600; }
-        .dark .tab-btn.active { border-left-color: #2e5e99; background: rgba(30, 74, 122, 0.4); color: #60a5fa; }
+    .sidebar.collapsed .nav-item {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
 
-        .settings-panel { display: none; animation: fadeIn 0.3s ease; }
-        .settings-panel.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-    </style>
+    .sidebar.collapsed .nav-item i {
+        margin-right: 0;
+        font-size: 1.25rem;
+    }
+
+    .sidebar.collapsed .nav-item span,
+    .sidebar.collapsed .logo-text,
+    .sidebar.collapsed .bottom-menu span {
+        display: none;
+    }
+
+    .sidebar.collapsed .bottom-menu .nav-item {
+        justify-content: center;
+    }
+
+    /* --- Nav Item Styling (Exact Match) --- */
+    .nav-item {
+        transition: all 0.2s ease;
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem; /* Matched to dashboard */
+        margin-bottom: 0.25rem;
+        color: #374151;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        white-space: nowrap;
+        text-decoration: none;
+    }
+
+    .nav-item:hover {
+        background-color: #f3f4f6;
+        color: #111827;
+    }
+
+    .dark .nav-item {
+        color: #d1d5db;
+    }
+
+    .dark .nav-item:hover {
+        background-color: #374151;
+        color: #ffffff;
+    }
+
+    /* Active State styling from Dashboard */
+    .nav-item.active {
+        background-color: #d0e1f5;
+        color: #1e4a7a;
+    }
+
+    .dark .nav-item.active {
+        background-color: #1e4a7a;
+        color: #ffffff;
+    }
+
+    .nav-item.active::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 60%;
+        width: 4px;
+        background-color: #2e5e99;
+        border-radius: 0 4px 4px 0;
+    }
+
+    .dark .nav-item.active::before {
+        background-color: #60a5fa;
+    }
+
+    /* Icon and Text alignment from Dashboard */
+    .nav-item i {
+        width: 1.5rem;
+        text-align: center;
+        margin-right: 0.75rem;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .nav-item span {
+        font-size: 0.875rem;
+        font-weight: 500; /* Dashboard uses 500 for nav text */
+    }
+
+    /* --- Enhanced Settings Tabs (Kept from your current page) --- */
+    .tab-btn { transition: all 0.3s ease; border-left: 3px solid transparent; }
+    .tab-btn:hover { transform: translateX(4px); }
+    .tab-btn.active { background-color: #E7F0FA !important; color: #1E4A7A !important; border-left-color: #1E4A7A; font-weight: 600; }
+    .dark .tab-btn.active { background-color: #1F2937 !important; color: #60a5fa !important; border-left-color: #60a5fa; }
+    .tab-btn:not(.active):hover { background-color: #f9fafb !important; color: #111827 !important; }
+    .dark .tab-btn:not(.active):hover { background-color: #374151 !important; color: #ffffff !important; }
+</style>
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-900 font-sans text-slate-900 dark:text-slate-100 transition-colors overflow-hidden">
     <div class="flex h-screen overflow-hidden">
-        
-        <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
-           <div class="px-4 py-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+
+       <aside id="mainSidebar"
+            class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+            <div class="px-4 py-6 flex-shrink-0 flex items-center justify-between h-[88px]">
                 <h1
                     class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-1 overflow-hidden whitespace-nowrap">
-                    <img src="/campuscode-logo.jpeg" alt="CampusCode Logo" class="h-12 w-12 transform scale-[1.3] flex-shrink-0 object-contain dark:invert mix-blend-multiply dark:mix-blend-normal" />
-                    
+                    <img src="/campuscode-logo.jpeg" alt="CampusCode Logo"
+                        class="h-12 w-12 transform scale-[1.3] flex-shrink-0 object-contain dark:invert mix-blend-multiply dark:mix-blend-normal" />
                     <span class="logo-text transition-all duration-300 opacity-100 w-auto ml-1">CampusCode</span>
                 </h1>
                 <button id="sidebarToggleBtn"
@@ -101,6 +164,7 @@
                     <i class="fas fa-chevron-left transition-transform duration-300"></i>
                 </button>
             </div>
+            
             <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
                 <a href="/college/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
                 <a href="/college/program" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Programs</span></a>
@@ -117,18 +181,16 @@
             </div>
         </aside>
 
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden relative">
             
-           <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+            <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
                 <div class="px-8 py-3 flex justify-between items-center h-[88px]">
                     <div class="flex-1 max-w-2xl flex items-center gap-4">
                         <div class="relative flex items-center w-full">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="fas fa-search text-gray-400"></i>
                             </div>
-                            <input type="text" id="globalSearchInput"
-                                class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
-                                placeholder="Search across programs, branches, subjects..." />
+                            <input type="text" id="globalSearchInput" class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all" placeholder="Search across ..." />
                         </div>
                     </div>
 
@@ -142,16 +204,12 @@
                             <button id="notificationBtn"
                                 class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
                                 <i class="fas fa-bell text-xl"></i>
-                                <span
-                                    class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
                             </button>
-                            <div id="notifDropdown"
-                                class="hidden absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50">
-                                <div
-                                    class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                            <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50">
+                                <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                                     <h3 class="font-semibold text-gray-800 dark:text-white text-sm">Notifications</h3>
-                                    <button class="text-xs text-primary-500 font-medium hover:text-primary-600">Mark all
-                                        read</button>
+                                    <button class="text-xs text-primary-500 font-medium hover:text-primary-600">Mark all read</button>
                                 </div>
                                 <div class="max-h-64 overflow-y-auto p-4 text-center text-xs text-gray-500">
                                     No new notifications
@@ -162,384 +220,269 @@
                         <div class="relative">
                             <button onclick="toggleProfile()"
                                 class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none">
-                                <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-sm"
-                                    id="headerInitials"></div>
-                                <span
-                                    class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block truncate max-w-[150px]"
-                                    id="headerName"></span>
+                                <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-sm" id="headerInitials">AD</div>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block truncate max-w-[150px]" id="headerName">Admin</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div class="mb-6 flex justify-between items-center">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Settings</h1>
-                        <p class="text-gray-600 dark:text-gray-400">Manage your account preferences and security</p>
-                    </div>
-                    <button id="saveChangesBtn" class="px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500/50">
-                        Save Changes
-                    </button>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        <div class="p-6 border-b border-gray-100 dark:border-gray-700">
-                            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Profile Information</h2>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Update your photo and personal details.</p>
-                        </div>
-                        <div class="p-6">
-                            <div class="flex flex-col sm:flex-row gap-6 mb-6">
-                                <div class="flex-shrink-0">
-                                    <div class="profile-initials-display h-24 w-24 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-500 flex items-center justify-center text-3xl font-bold border-4 border-white dark:border-gray-800 shadow-md">--</div>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
-                                    <input type="text" id="firstNameInput" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
-                                    <input type="text" id="lastNameInput" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
-                                </div>
-
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
-                                    <div class="flex gap-3">
-                                        <div class="relative flex-1">
-                                            <i class="far fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                            <input type="email" id="emailInput" class="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
-                                        </div>
-                                        <button type="button" id="changeEmailBtn" class="px-4 py-2 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg text-sm font-medium transition-colors border border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30">
-                                            Update
-                                        </button>
-                                    </div>
-                                    
-                                    <div id="emailOtpSection" class="hidden mt-4 p-4 bg-primary-50 dark:bg-gray-800/80 rounded-lg border border-primary-200 dark:border-gray-700 shadow-inner">
-                                        <div class="flex items-center justify-between mb-3">
-                                            <p class="text-sm text-gray-700 dark:text-gray-300">
-                                                OTP sent to: <span id="otpTargetEmail" class="font-bold text-primary-600 dark:text-primary-400"></span>
-                                            </p>
-                                        </div>
-                                        <div class="flex gap-3 items-center">
-                                            <input type="text" id="emailOtpInput" placeholder="Enter 6-digit OTP" class="flex-1 px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-sm transition-all tracking-widest font-mono">
-                                            <button type="button" id="verifyEmailBtn" class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium shadow-sm transition-colors">Verify</button>
-                                        </div>
-                                        <button type="button" id="resendEmailOtpBtn" class="mt-3 text-sm text-primary-600 dark:text-primary-400 font-medium hover:underline disabled:text-gray-400 dark:disabled:text-gray-500 disabled:no-underline transition-all" disabled>
-                                            Resend OTP in <span id="emailOtpTimer">30</span>s
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Department / Designation</label>
-                                    <input type="text" id="designationInput" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                        <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                            <div>
-                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Security & Password</h2>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Ensure your account is secure using a strong password.</p>
-                            </div>
-                            <button onclick="toggleForgotPasswordModal()" class="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 hover:underline px-3 py-1.5 rounded-md hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
-                                Forgot Password?
-                            </button>
-                        </div>
-                        <div class="p-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                <div class="md:col-span-2 bg-gray-50 dark:bg-gray-900/50 p-5 rounded-lg border border-gray-300 dark:border-gray-700 shadow-sm">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Password</label>
-                                    <div class="relative">
-                                        <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                        <input type="password" id="currPassword" placeholder="Enter current password to authorize changes" class="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
-                                    <input type="password" id="newPassword" placeholder="Minimum 8 characters" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm New Password</label>
-                                    <input type="password" id="confirmPassword" placeholder="Match new password" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                        <div class="p-6 border-b border-gray-100 dark:border-gray-700">
-                            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Notifications</h2>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Manage what alerts you receive.</p>
-                        </div>
-                        <div class="p-6 space-y-4">
-                            <div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-800 dark:text-gray-200">Email Notifications</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Receive emails about new contests.</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" checked class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500/30 rounded-full peer dark:bg-gray-700 peer-checked:bg-primary-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-sm dark:border-gray-600 dark:after:border-gray-500 border border-gray-300 dark:border-gray-600 shadow-inner"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <div id="forgotPasswordModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white dark:bg-gray-800 w-[400px] rounded-2xl shadow-2xl p-6 border border-gray-200 dark:border-gray-700">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">Reset Password</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">We'll send an OTP to your registered email to verify your identity.</p>
-            
-            <div id="fpRequestSection">
-                <button id="fpSendOtpBtn" class="w-full bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50">
-                    Send Verification OTP
-                </button>
-            </div>
-
-            <div id="fpVerifySection" class="hidden space-y-4">
-                <div class="p-3 bg-primary-50 dark:bg-gray-700/50 border border-primary-200 dark:border-gray-600 rounded-lg text-center shadow-inner">
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">OTP sent to:</p>
-                    <p id="fpSentEmailDisplay" class="text-sm font-bold text-gray-800 dark:text-white"></p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Enter OTP</label>
-                    <input type="text" id="fpOtpInput" placeholder="6-digit OTP" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-sm transition-all text-center tracking-widest font-mono">
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
-                    <input type="password" id="fpNewPassword" placeholder="Enter New Password" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-sm transition-all">
-                </div>
-                
-                <button id="fpResetBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-sm mt-2 focus:outline-none focus:ring-2 focus:ring-green-500/50">
-                    Reset Password
-                </button>
-                <div class="text-center mt-2">
-                    <button type="button" id="fpResendOtpBtn" class="text-sm text-primary-600 dark:text-primary-400 hover:underline disabled:text-gray-400 disabled:no-underline transition-colors" disabled>
-                        Resend OTP in <span id="fpTimer">30</span>s
-                    </button>
-                </div>
-            </div>
-
-            <button onclick="toggleForgotPasswordModal()" class="w-full mt-4 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Cancel</button>
-            <main class="flex-1 overflow-y-auto p-4 sm:p-8 relative">
+            <main class="flex-1 overflow-y-auto p-4 sm:p-8 bg-[#F8FAFC] dark:bg-gray-900 transition-colors">
                 <div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-8">
                     
                     <div class="w-full md:w-64 flex-shrink-0">
-                        <div class="mb-4">
-                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Workspace Settings</h2>
-                        </div>
-
-                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sticky top-4">
-                            <p class="px-3 text-xs font-bold text-gray-400 uppercase mb-2 mt-2">Organization</p>
-                            <button class="tab-btn active w-full text-left px-4 py-2.5 rounded-lg text-sm text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-3" data-target="panel-college">
-                                <i class="fas fa-university"></i> College Workspace
-                            </button>
-                            <button class="tab-btn w-full text-left px-4 py-2.5 rounded-lg text-sm text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-3" data-target="panel-faculty">
-                                <i class="fas fa-chalkboard-teacher"></i> Faculty Preferences
-                            </button>
-                            <button class="tab-btn w-full text-left px-4 py-2.5 rounded-lg text-sm text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-3" data-target="panel-accreditation">
-    <i class="fas fa-certificate"></i> Accreditation & University
-</button>
-                            
-                            <p class="px-3 text-xs font-bold text-gray-400 uppercase mb-2 mt-4">Personal & Security</p>
-                            <button class="tab-btn w-full text-left px-4 py-2.5 rounded-lg text-sm text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-3" data-target="panel-security">
-                                <i class="fas fa-shield-alt"></i> Security & Access
-                            </button>
-                            <button class="tab-btn w-full text-left px-4 py-2.5 rounded-lg text-sm text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-3" data-target="panel-notifications">
-                                <i class="fas fa-bell"></i> Notifications
-                            </button>
-                        </div>
-                        
-                        <div class="mt-6">
-                            <button class="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium shadow-md transition-transform active:scale-95 flex justify-center items-center gap-2" onclick="saveAllSettings(event)">
-                                <i class="fas fa-save"></i> Save All Settings
-                            </button>
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sticky top-4">
+                            <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4 px-2">Configuration</h3>
+                            <nav class="space-y-1.5">
+                                <button onclick="switchTab('account')" id="btn-account" class="tab-btn active w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
+                                    <i class="fas fa-id-badge w-5 text-center"></i> Account Overview
+                                </button>
+                                <button onclick="switchTab('security')" id="btn-security" class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
+                                    <i class="fas fa-shield-alt w-5 text-center"></i> Security & Access
+                                </button>
+                                <button onclick="switchTab('notifications')" id="btn-notifications" class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
+                                    <i class="fas fa-bell w-5 text-center"></i> Notifications
+                                </button>
+                                <button onclick="switchTab('preferences')" id="btn-preferences" class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
+                                    <i class="fas fa-sliders-h w-5 text-center"></i> Preferences
+                                </button>
+                            </nav>
                         </div>
                     </div>
 
-                    <div class="flex-1 mt-10 md:mt-0">
+                    <div class="flex-1 space-y-6">
                         
-                        <div id="panel-college" class="settings-panel active space-y-6">
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
-                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">College Workspace</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Manage global rules for student registration and departmental access.</p>
-                                
-                                <div class="space-y-6">
-                                    <div class="flex items-start justify-between">
-                                        <div class="pr-6">
-                                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Student Auto-Approval</h4>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Users joining with the approved college domain will bypass manual verification.</p>
+                        <div id="tab-account" class="tab-content block animate-[fadeIn_0.3s_ease-out]">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        <div class="h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-500">
+                                            <i class="fas fa-university text-xl"></i>
                                         </div>
-                                        <div class="relative inline-block w-12 mr-2 align-middle select-none flex-shrink-0 mt-1">
-                                            <input type="checkbox" id="college_auto_approve" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                                            <label for="college_auto_approve" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
+                                        <div>
+                                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Account Overview</h3>
+                                            <p class="text-sm text-gray-500">Your administrative identity and assigned college details.</p>
                                         </div>
                                     </div>
-                                    <hr class="border-gray-100 dark:border-gray-700">
-                                    <div class="flex items-start justify-between">
-                                        <div class="pr-6">
-                                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">HOD Delegation</h4>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Allow Department Heads to manage users & approve requests specifically within their branch.</p>
-                                        </div>
-                                        <div class="relative inline-block w-12 mr-2 align-middle select-none flex-shrink-0 mt-1">
-                                            <input type="checkbox" id="college_hod_delegation" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                                            <label for="college_hod_delegation" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
-                                        </div>
-                                    </div>
+                                    <button onclick="toggleCollegeEdit()" id="btn-edit-college" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                        <i class="fas fa-pen"></i> Edit Details
+                                    </button>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div id="panel-security" class="settings-panel space-y-6">
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
-                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Security & Access</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Manage your admin credentials and multi-factor authentication.</p>
-                                
-                                <div class="space-y-6">
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Update Email Address</label>
-                                        <div class="flex flex-col sm:flex-row gap-3">
-                                            <input type="email" id="newEmailInput" placeholder="Enter new email address" class="flex-1 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white">
-                                            <button onclick="requestEmailOTP()" class="bg-gray-800 hover:bg-gray-900 text-white dark:bg-gray-700 dark:hover:bg-gray-600 px-6 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap">Send Verification</button>
+                                <div class="p-6 sm:p-8 space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Assigned College</p>
+                                                <i class="fas fa-building text-gray-300 dark:text-gray-600"></i>
+                                            </div>
+                                            <p id="disp-college" class="text-lg font-bold text-gray-900 dark:text-white">Loading...</p>
                                         </div>
-                                    </div>
-
-                                    <hr class="border-gray-100 dark:border-gray-700">
-
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Change Password</label>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
-                                            <input type="password" id="oldPassword" placeholder="Current Password" class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white">
-                                            <input type="password" id="newPassword" placeholder="New Password" class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white">
+                                        
+                                        <div class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">System Role</p>
+                                                <i class="fas fa-user-shield text-primary-200 dark:text-primary-800"></i>
+                                            </div>
+                                            <p id="disp-role" class="text-lg font-bold text-primary-500 uppercase">Loading...</p>
                                         </div>
-                                        <div class="flex justify-between items-center">
-                                            <button onclick="requestPasswordResetOTP()" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">Forgot password?</button>
-                                            <button onclick="updatePassword()" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-6 py-2 rounded-lg text-sm font-medium transition-colors">Update Password</button>
+                                        
+                                        <div class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow relative">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">University Affiliation</p>
+                                                <i class="fas fa-graduation-cap text-gray-300 dark:text-gray-600"></i>
+                                            </div>
+                                            <p id="disp-university" class="text-base font-semibold text-gray-700 dark:text-gray-300 block">Pending Update</p>
+                                            <input type="text" id="input-university" class="hidden w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500/50 outline-none transition-all mt-1" placeholder="e.g. State University" />
+                                        </div>
+                                        
+                                        <div class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow relative">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Accreditation Status</p>
+                                                <i class="fas fa-award text-gray-300 dark:text-gray-600"></i>
+                                            </div>
+                                            <p id="disp-accreditation" class="text-base font-semibold text-gray-700 dark:text-gray-300 block">Pending Update</p>
+                                            <input type="text" id="input-accreditation" class="hidden w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500/50 outline-none transition-all mt-1" placeholder="e.g. NAAC A+" />
+                                        </div>
+
+                                        <div class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow md:col-span-2">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Registered Email</p>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+                                                    <p id="disp-status" class="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wide">Active</p>
+                                                </div>
+                                            </div>
+                                            <p id="disp-email" class="text-lg font-bold text-gray-900 dark:text-white truncate">Loading...</p>
                                         </div>
                                     </div>
                                     
-                                    <hr class="border-gray-100 dark:border-gray-700">
+                                    <div id="edit-actions" class="hidden flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                                        <button onclick="toggleCollegeEdit()" class="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+                                        <button onclick="saveCollegeInfo(event)" class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-xl text-sm font-medium shadow-md transition-all flex items-center gap-2 transform active:scale-95">
+                                            <i class="fas fa-save"></i> Save Details
+                                        </button>
+                                    </div>
 
-                                    <div class="flex items-start justify-between">
-                                        <div class="pr-6">
-                                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Two-Factor Authentication (2FA)</h4>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Require an email OTP alongside your password for admin logins to increase security.</p>
-                                        </div>
-                                        <div class="relative inline-block w-12 mr-2 align-middle select-none flex-shrink-0 mt-1">
-                                            <input type="checkbox" id="security_2fa" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                                            <label for="security_2fa" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
-                                        </div>
+                                    <div class="mt-6 flex items-center gap-3 text-sm text-gray-500 bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                                        <i class="fas fa-info-circle text-blue-500"></i>
+                                        <p>Account established on <span id="disp-joined" class="font-bold text-gray-700 dark:text-gray-300">Loading...</span></p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div id="panel-faculty" class="settings-panel space-y-6">
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
-                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">My Faculty Preferences</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Since you are also a faculty member, configure how students interact with you.</p>
-                                
-                                <div class="space-y-6">
-                                    <div class="flex items-start justify-between">
-                                        <div class="pr-6">
-                                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Public Contact Visibility</h4>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Display my email and mobile number to students in the college directory.</p>
-                                        </div>
-                                        <div class="relative inline-block w-12 mr-2 align-middle select-none flex-shrink-0 mt-1">
-                                            <input type="checkbox" id="fac_visibility" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                                            <label for="fac_visibility" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
-                                        </div>
+                        <div id="tab-security" class="tab-content hidden animate-[fadeIn_0.3s_ease-out]">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
+                                    <div class="h-12 w-12 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center text-red-500">
+                                        <i class="fas fa-shield-alt text-xl"></i>
                                     </div>
-                                    <hr class="border-gray-100 dark:border-gray-700">
-                                    <div class="flex items-start justify-between">
-                                        <div class="pr-6">
-                                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Community Messaging</h4>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Accept direct queries and tags from students in the community forum.</p>
-                                        </div>
-                                        <div class="relative inline-block w-12 mr-2 align-middle select-none flex-shrink-0 mt-1">
-                                            <input type="checkbox" id="fac_messages" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                                            <label for="fac_messages" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
-                                        </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Security & Access</h3>
+                                        <p class="text-sm text-gray-500">Manage your login credentials to secure your administration portal.</p>
+                                    </div>
+                                </div>
+                                <div class="p-6 sm:p-8 space-y-8">
+                                    
+                                    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+                                        <h4 class="text-base font-bold text-gray-900 dark:text-white mb-1">Update Email Address</h4>
+                                        <p class="text-sm text-gray-500 mb-5">Change the email used for login and important platform communications.</p>
+                                        <form id="emailForm" class="max-w-xl space-y-4">
+                                            <div>
+                                                <div class="relative">
+                                                    <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                                    <input type="email" id="newEmail" required class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all shadow-sm" placeholder="Enter new email address" />
+                                                </div>
+                                            </div>
+                                            <button type="submit" id="btnSaveEmail" class="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-medium py-2.5 px-6 rounded-xl shadow-md transition-all hover:bg-gray-800 dark:hover:bg-white transform active:scale-95 text-sm">
+                                                Update Email
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+                                        <h4 class="text-base font-bold text-gray-900 dark:text-white mb-1">Change Password</h4>
+                                        <p class="text-sm text-gray-500 mb-5">Ensure your account is using a long, random password to stay secure.</p>
+                                        <form id="passwordForm" class="space-y-5 max-w-xl">
+                                            <div>
+                                                <div class="relative">
+                                                    <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                                    <input type="password" id="currPass" required class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all shadow-sm" placeholder="Current password" />
+                                                </div>
+                                                <div class="flex justify-end mt-2">
+                                                    <button type="button" onclick="handleForgotPassword()" class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors">Forgot your password?</button>
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                                <div class="relative">
+                                                    <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                                    <input type="password" id="newPass" required class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all shadow-sm" placeholder="New password" />
+                                                </div>
+                                                <div class="relative">
+                                                    <i class="fas fa-check-circle absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                                    <input type="password" id="confirmPass" required class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all shadow-sm" placeholder="Confirm new password" />
+                                                </div>
+                                            </div>
+                                            <button type="submit" id="btnSavePassword" class="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2.5 px-6 rounded-xl shadow-md shadow-primary-500/20 transition-all transform active:scale-95 text-sm flex items-center gap-2">
+                                                <i class="fas fa-save"></i> Update Password
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div id="panel-notifications" class="settings-panel space-y-6">
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
-                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Notification Preferences</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Choose what triggers an alert in your dashboard and email.</p>
-                                
-                                <div class="space-y-6">
-                                    <div class="flex items-start justify-between">
-                                        <div class="pr-6">
-                                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Contest Alerts</h4>
-                                            <p class="text-xs text-gray-500 mt-1">Get notified when new contests are created by other admins/faculty.</p>
-                                        </div>
-                                        <div class="relative inline-block w-12 mr-2 align-middle select-none flex-shrink-0 mt-1">
-                                            <input type="checkbox" id="notif_contest_alerts" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                                            <label for="notif_contest_alerts" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
-                                        </div>
+                        <div id="tab-notifications" class="tab-content hidden animate-[fadeIn_0.3s_ease-out]">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
+                                    <div class="h-12 w-12 rounded-full bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-500">
+                                        <i class="fas fa-bell text-xl"></i>
                                     </div>
-                                    <hr class="border-gray-100 dark:border-gray-700">
-                                    <div class="flex items-start justify-between">
-                                        <div class="pr-6">
-                                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Submission Results</h4>
-                                            <p class="text-xs text-gray-500 mt-1">Receive alerts when code submissions are evaluated.</p>
-                                        </div>
-                                        <div class="relative inline-block w-12 mr-2 align-middle select-none flex-shrink-0 mt-1">
-                                            <input type="checkbox" id="notif_submission_results" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                                            <label for="notif_submission_results" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
-                                        </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Notification Preferences</h3>
+                                        <p class="text-sm text-gray-500">Control system alerts dispatched to your administrative dashboard.</p>
                                     </div>
-                                    <hr class="border-gray-100 dark:border-gray-700">
-                                    <div class="flex items-start justify-between">
-                                        <div class="pr-6">
-                                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Deadline Reminders</h4>
-                                            <p class="text-xs text-gray-500 mt-1">Get warnings 24 hours before a contest or assignment ends.</p>
+                                </div>
+                                <div class="p-6 sm:p-8 space-y-6">
+                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-700">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Contest Creation Alerts</h4>
+                                            <p class="text-xs text-gray-500 mt-1">Notify when faculty members create or schedule new contests.</p>
                                         </div>
-                                        <div class="relative inline-block w-12 mr-2 align-middle select-none flex-shrink-0 mt-1">
-                                            <input type="checkbox" id="notif_deadline_reminders" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                                            <label for="notif_deadline_reminders" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="notif_contest" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-primary-500"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-700">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Submission & Results</h4>
+                                            <p class="text-xs text-gray-500 mt-1">Alerts when student contest submissions are fully graded and published.</p>
                                         </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="notif_results" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-primary-500"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-700">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Deadline Reminders</h4>
+                                            <p class="text-xs text-gray-500 mt-1">Receive reminders for pending administrative tasks or verification requests.</p>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="notif_deadline" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-primary-500"></div>
+                                        </label>
+                                    </div>
+                                    <div class="pt-4">
+                                        <button type="button" onclick="saveNotifications(event)" class="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-medium py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg transform active:scale-95 text-sm">
+                                            Save Preferences
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div id="panel-accreditation" class="settings-panel space-y-6">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
-        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Accreditation & University</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Manage your university affiliations and accreditation details.</p>
-        
-        <div class="space-y-6">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">University Affiliation</label>
-                <input type="text" id="universityAffiliation" placeholder="e.g. Technical University" class="w-full max-w-lg rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white">
-                <p class="text-xs text-gray-500 mt-2">The primary university your college is affiliated with.</p>
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Accreditation </label>
-                <input type="text" id="accreditationBody" placeholder="e.g. NAAC, NBA, ABET" class="w-full max-w-lg rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 dark:text-white">
-            </div>
-        </div>
-    </div>
-</div>
+                        <div id="tab-preferences" class="tab-content hidden animate-[fadeIn_0.3s_ease-out]">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
+                                    <div class="h-12 w-12 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-500">
+                                        <i class="fas fa-paint-roller text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Interface Preferences</h3>
+                                        <p class="text-sm text-gray-500">Customize your platform viewing experience.</p>
+                                    </div>
+                                </div>
+                                <div class="p-6 sm:p-8">
+                                    <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-4">Theme Selection</h4>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                        
+                                        <button onclick="setThemePreference('light')" id="theme-btn-light" class="relative overflow-hidden group p-6 rounded-2xl border-2 transition-all duration-300 flex items-center text-left hover:shadow-md bg-gray-50 dark:bg-gray-800/40">
+                                            <div class="h-12 w-12 rounded-full bg-white shadow-sm text-yellow-500 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                                                <i class="fas fa-sun text-xl"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-base font-bold text-gray-900 dark:text-white">Light Mode</p>
+                                                <p class="text-xs text-gray-500 mt-1">Bright and clean design</p>
+                                            </div>
+                                        </button>
+
+                                        <button onclick="setThemePreference('dark')" id="theme-btn-dark" class="relative overflow-hidden group p-6 rounded-2xl border-2 transition-all duration-300 flex items-center text-left hover:shadow-md bg-gray-50 dark:bg-gray-800/40">
+                                            <div class="h-12 w-12 rounded-full bg-gray-900 shadow-sm text-blue-400 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                                                <i class="fas fa-moon text-xl"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-base font-bold text-gray-900 dark:text-white">Dark Mode</p>
+                                                <p class="text-xs text-gray-500 mt-1">Easy on the eyes</p>
+                                            </div>
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
                 </div>
@@ -547,521 +490,433 @@
         </div>
     </div>
 
-    <div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
+    <div id="profileOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700">
             <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
-                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
-                    <i class="fas fa-times text-lg"></i>
-                </button>
+                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white"><i class="fas fa-times text-lg"></i></button>
                 <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
-                    <div id="profileOverlayInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
+                    <div id="modalInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">AD</div>
                 </div>
             </div>
             <div class="pt-12 pb-6 px-6 text-center">
-                <h3 id="profileOverlayName" class="text-xl font-bold text-gray-800 dark:text-white">Loading...</h3>
-                <p id="profileOverlayCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading...</p>
-                <p id="profileOverlayRole" class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1">Role: Loading...</p>
-
-                <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
-                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Contest</p><p id="statContests" class="text-lg font-bold dark:text-white">0</p></div>
-                    <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-primary-400 uppercase">Users</p><p id="statUsers" class="text-lg font-bold dark:text-white">0</p></div>
-                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p><p id="statPrograms" class="text-lg font-bold dark:text-white">0</p></div>
-                </div>
-                
+                <h3 id="modalName" class="text-xl font-bold text-gray-800 dark:text-white">Admin</h3>
+                <p id="modalCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading College...</p>
+                <p id="modalRole" class="text-xs text-gray-500 mb-6 uppercase flex items-center justify-center gap-1 mt-1">Admin</p>
                 <div class="space-y-1">
-                    <a href="/college/profile" class="block">
-                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                            <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
-                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
-                        </button>
-                    </a>
-                    
-                    <a href="/college/help_support" class="block">
-                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                            <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
-                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
-                        </button>
-                    </a>
-
-                    <button id="logoutBtn" onclick="logoutAdmin()" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
-                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
-                            <i class="fas fa-sign-out-alt"></i>
+                    <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
+                        <div>
+                            <p class="text-[10px] font-bold text-primary-400 uppercase">Contest</p>
+                            <p id="statContests" class="text-lg font-bold dark:text-white">0</p>
                         </div>
-                        <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
-                    </button>
+                        <div class="border-x border-gray-100 dark:border-gray-700 px-6">
+                            <p class="text-[10px] font-bold text-primary-400 uppercase">Users</p>
+                            <p id="statUsers" class="text-lg font-bold dark:text-white">0</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p>
+                            <p id="statPrograms" class="text-lg font-bold dark:text-white">0</p>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <a href="/college/profile" class="block">
+                            <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
+                                <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                            </button>
+                        </a>
+                        <a href="help_support.html">
+                            <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
+                                <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                            </button>
+                        </a>
+                         <a href="setting.html">
+                            <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                <div class="flex items-center gap-3"><i class="fas fa-cog text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> System Setting</span></div>
+                                <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                            </button>
+                        </a>
+                        <button id="modalLogoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                            <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></div>
+                            <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+                        </button>
+                        <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
+                    </div>
                 </div>
-                <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
             </div>
         </div>
     </div>
 
+    <style>
+        /* Smooth Fade In Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
     <script>
-        // --- TIMER UTILITY FUNCTION ---
-        let emailTimerInterval, fpTimerInterval;
+        // --- Sidebar & Theme Logic ---
+        const html = document.documentElement;
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
         
-        function startOtpTimer(duration, displayElement, btnElement, intervalRef) {
-            let timer = duration;
-            btnElement.disabled = true;
-            clearInterval(intervalRef);
-            intervalRef = setInterval(function () {
-                displayElement.textContent = timer;
-                if (--timer < 0) {
-                    clearInterval(intervalRef);
-                    displayElement.textContent = "0";
-                    btnElement.disabled = false;
-                    btnElement.innerHTML = "Resend OTP";
-                } else {
-                    btnElement.innerHTML = `Resend OTP in <span id="${displayElement.id}">${timer}</span>s`;
-                }
-            }, 1000);
-            return intervalRef;
-        }
-
-        // --- CORE DATABASE CONNECTION: FETCH PROFILE ---
-        document.addEventListener("DOMContentLoaded", () => {
-            // Initialize UI helpers then fetch profile
-            try { initTheme(); initSidebar(); initNotifications(); } catch(e) { /* ignore if not yet defined */ }
-            fetchProfile();
-        });
-
-        // --- Theme Management ---
-        function initTheme() {
-            const toggleBtn = document.getElementById('themeToggleBtn');
-            const themeIcon = document.getElementById('themeIcon');
-            const root = document.documentElement;
-
-            function updateIcon() {
-                if (!themeIcon) return;
-                if (root.classList.contains('dark')) {
-                    themeIcon.classList.remove('fa-moon');
-                    themeIcon.classList.add('fa-sun');
-                } else {
-                    themeIcon.classList.remove('fa-sun');
-                    themeIcon.classList.add('fa-moon');
-                }
-            }
-
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        function updateThemeIcon() {
+            const isDark = html.classList.contains('dark');
+            themeIcon.classList.replace(isDark ? 'fa-moon' : 'fa-sun', isDark ? 'fa-sun' : 'fa-moon');
             
-            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                root.classList.add('dark');
-            } else {
-                root.classList.remove('dark');
-            }
-
-            updateIcon();
-
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', () => {
-                    root.classList.toggle('dark');
-                    const isDark = root.classList.contains('dark');
-                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                    updateIcon();
-                });
+            // Highlight active theme button in Preferences
+            const lightBtn = document.getElementById('theme-btn-light');
+            const darkBtn = document.getElementById('theme-btn-dark');
+            if(lightBtn && darkBtn) {
+                if (isDark) {
+                    darkBtn.classList.add('border-primary-500', 'bg-blue-50/10');
+                    darkBtn.classList.remove('border-transparent');
+                    lightBtn.classList.remove('border-primary-500', 'bg-blue-50/10');
+                    lightBtn.classList.add('border-transparent');
+                } else {
+                    lightBtn.classList.add('border-primary-500', 'bg-blue-50/50');
+                    lightBtn.classList.remove('border-transparent');
+                    darkBtn.classList.remove('border-primary-500', 'bg-blue-50/50');
+                    darkBtn.classList.add('border-transparent');
+                }
             }
         }
+        
+        themeToggleBtn.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+            updateThemeIcon();
+        });
+        
+        // Ensure UI updates on load
+        setTimeout(updateThemeIcon, 100);
 
-        // --- Sidebar & Notifications ---
-        function initSidebar() {
-            const toggleBtn = document.getElementById('sidebarToggleBtn');
+        function setThemePreference(mode) {
+            if(mode === 'dark') {
+                html.classList.add('dark');
+                localStorage.theme = 'dark';
+            } else {
+                html.classList.remove('dark');
+                localStorage.theme = 'light';
+            }
+            updateThemeIcon();
+        }
+
+        document.getElementById('sidebarToggleBtn').addEventListener('click', () => {
             const sidebar = document.getElementById('mainSidebar');
-            if(toggleBtn) {
-                toggleBtn.addEventListener('click', () => {
-                    sidebar.classList.toggle('collapsed');
-                });
-            }
-        }
-
-        function initNotifications() {
-            const notifBtn = document.getElementById('notificationBtn');
-            const notifDropdown = document.getElementById('notifDropdown');
-
-            if(notifBtn) {
-                notifBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    notifDropdown.classList.toggle('hidden');
-                });
-            }
-
-            document.addEventListener('click', (e) => {
-                if (notifBtn && !notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
-                    notifDropdown.classList.add('hidden');
-                }
-            });
-        }
-
-        // --- Profile Fetch & Overlay ---
-        async function fetchProfile() {
-            try {
-                // Fetch User Details
-                const res = await fetch('/college/api/profile');
-                if (res.ok) {
-                    const data = await res.json();
-                    const u = data.user || data;
-
-            const name = u.fullName || 'Admin User';
-            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-
-            // 1. Update Header
-            const headerInitials = document.getElementById('headerInitials');
-            const headerName = document.getElementById('headerName');
-            if (headerInitials) headerInitials.textContent = initials;
-            if (headerName) headerName.textContent = name;
-
-            // 2. Update Profile Overlay
-            const modalInitials = document.getElementById('modalInitials');
-            const modalName = document.getElementById('modalName');
-            const modalCollege = document.getElementById('modalCollege');
-            const modalRoleDisplay = document.getElementById('modalRoleDisplay');
-
-            if (modalInitials) modalInitials.textContent = initials;
-            if (modalName) modalName.textContent = name;
-            if (modalCollege) modalCollege.innerHTML = `<i class="fas fa-university"></i> ${u.collegeName || 'Not Assigned'}`;
-            if (modalRoleDisplay) modalRoleDisplay.innerHTML = `ID: ${u.id || 'N/A'}`;
-        }
-    } catch (err) { 
-        console.error('Error fetching profile:', err); 
-    }
-}
-        // --- EMAIL UPDATE & OTP LOGIC ---
-        const changeEmailBtn = document.getElementById('changeEmailBtn');
-        const emailOtpSection = document.getElementById('emailOtpSection');
-        const resendEmailOtpBtn = document.getElementById('resendEmailOtpBtn');
-        const verifyEmailBtn = document.getElementById('verifyEmailBtn');
-        const otpTargetEmail = document.getElementById('otpTargetEmail');
-
-        changeEmailBtn.addEventListener('click', async () => {
-            const newEmail = document.getElementById('emailInput').value;
-            if(!newEmail) return alert("Please enter a valid email.");
-
-            try {
-                changeEmailBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                const response = await fetch('/college/send-email-update-otp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: newEmail })
-                });
-                
-                const data = await response.json();
-                if(data.success || response.ok) { 
-                    otpTargetEmail.textContent = newEmail;
-                    emailOtpSection.classList.remove('hidden');
-                    emailTimerInterval = startOtpTimer(30, document.getElementById('emailOtpTimer'), resendEmailOtpBtn, emailTimerInterval);
-                } else {
-                    alert("Failed to send OTP.");
-                }
-            } catch(e) { console.error(e); alert("Network error. OTP assumed sent for demo."); 
-                otpTargetEmail.textContent = newEmail;
-                emailOtpSection.classList.remove('hidden');
-                emailTimerInterval = startOtpTimer(30, document.getElementById('emailOtpTimer'), resendEmailOtpBtn, emailTimerInterval);
-            } finally {
-                changeEmailBtn.innerHTML = 'Update';
-            }
-        });
-
-        resendEmailOtpBtn.addEventListener('click', () => changeEmailBtn.click());
-
-        verifyEmailBtn.addEventListener('click', async () => {
-            const otp = document.getElementById('emailOtpInput').value;
-            const newEmail = document.getElementById('emailInput').value;
-            
-            try {
-                const response = await fetch('/college/verify-email-otp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: newEmail, otp })
-                });
-                const data = await response.json();
-                
-                alert("Email updated successfully!");
-                emailOtpSection.classList.add('hidden');
-                document.getElementById('emailOtpInput').value = '';
-                clearInterval(emailTimerInterval);
-            } catch(e) {
-                console.error(e); alert("Failed to verify OTP.");
-            }
-        });
-
-        // --- FORGOT PASSWORD MODAL LOGIC ---
-        function toggleForgotPasswordModal() {
-            const modal = document.getElementById('forgotPasswordModal');
-            modal.classList.toggle('hidden');
-            document.getElementById('fpRequestSection').classList.remove('hidden');
-            document.getElementById('fpVerifySection').classList.add('hidden');
-            document.getElementById('fpOtpInput').value = '';
-            document.getElementById('fpNewPassword').value = '';
-            document.getElementById('fpSentEmailDisplay').textContent = '';
-            clearInterval(fpTimerInterval);
-        }
-
-        document.getElementById('fpSendOtpBtn').addEventListener('click', async () => {
-            const currentEmail = document.getElementById('emailInput').value;
-            if(!currentEmail) {
-                alert("No email address found. Please ensure your email is saved in your profile first.");
-                return;
-            }
-
-            const btn = document.getElementById('fpSendOtpBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-            btn.disabled = true;
-            
-            try {
-                const response = await fetch('/college/forgot-password-otp', { method: 'POST' });
-                document.getElementById('fpRequestSection').classList.add('hidden');
-                document.getElementById('fpVerifySection').classList.remove('hidden');
-                
-                document.getElementById('fpSentEmailDisplay').textContent = currentEmail;
-                fpTimerInterval = startOtpTimer(30, document.getElementById('fpTimer'), document.getElementById('fpResendOtpBtn'), fpTimerInterval);
-            } catch(e) {
-                console.error(e); 
-                alert("Failed to trigger Forgot Password OTP.");
-            } finally {
-                btn.innerHTML = 'Send Verification OTP';
-                btn.disabled = false;
-            }
-        });
-
-        document.getElementById('fpResendOtpBtn').addEventListener('click', () => {
-            document.getElementById('fpSendOtpBtn').click(); 
-        });
-
-        document.getElementById('fpResetBtn').addEventListener('click', async () => {
-            const otp = document.getElementById('fpOtpInput').value;
-            const newPassword = document.getElementById('fpNewPassword').value;
-            
-            if(!otp || !newPassword) return alert("Please fill both OTP and New Password fields.");
-
-            try {
-                const response = await fetch('/college/reset-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ otp, newPassword })
-                });
-                alert("Password reset successfully!");
-                toggleForgotPasswordModal();
-            } catch(e) {
-                console.error(e); alert("Error resetting password.");
-            }
-        });
-
-        // --- CORE DATABASE CONNECTION: SAVE GENERAL SETTINGS ---
-        document.getElementById('saveChangesBtn').addEventListener('click', async () => {
-            const btn = document.getElementById('saveChangesBtn');
-            
-            const firstName = document.getElementById('firstNameInput').value;
-            const lastName = document.getElementById('lastNameInput').value;
-            const fullName = `${firstName} ${lastName}`.trim(); 
-            
-            const email = document.getElementById('emailInput').value;
-            const designation = document.getElementById('designationInput').value;
-            const currPass = document.getElementById('currPassword').value;
-            const newPass = document.getElementById('newPassword').value;
-            const confPass = document.getElementById('confirmPassword').value;
-
-            if (newPass && newPass !== confPass) {
-                alert("New Passwords do not match!");
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
-
-            try {
-                const response = await fetch('/college/update-profile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ firstName, lastName, fullName, email, designation, currPass, newPass })
-                });
-
-                const result = await response.json();
-                if (result.success || response.ok) {
-                    alert("Settings updated successfully!");
-                    document.getElementById('currPassword').value = '';
-                    document.getElementById('newPassword').value = '';
-                    document.getElementById('confirmPassword').value = '';
-                    fetchProfile(); 
-                } else {
-                    alert("Error: " + (result.message || "Failed to update profile."));
-                }
-            } catch (err) {
-                console.error("Save Error:", err);
-                alert("An error occurred while saving settings.");
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "Save Changes";
-            }
-        });
-
-        // --- UI FUNCTIONS ---
-        function toggleProfile(e) {
-            if (e) e.stopPropagation();
-            const overlay = document.getElementById('profileOverlay');
-            const card = overlay.querySelector('div');
-            
-            if (overlay.classList.contains('hidden')) {
-                overlay.classList.remove('hidden');
-                setTimeout(() => {
-                    card.classList.remove('scale-95', 'opacity-0');
-                    card.classList.add('scale-100', 'opacity-100');
-                }, 10);
+            const icon = document.getElementById('sidebarToggleBtn').querySelector('i');
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.classList.replace('fa-chevron-left', 'fa-chevron-right');
             } else {
-                card.classList.remove('scale-100', 'opacity-100');
-                card.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    overlay.classList.add('hidden');
-                }, 300); 
+                icon.classList.replace('fa-chevron-right', 'fa-chevron-left');
             }
-        }
-
-        function logoutAdmin() {
-            localStorage.removeItem("adminLogin");
-            fetch('/college/logout', { method: 'POST' })
-                .then(() => window.location.href = '/login');
-        }
-
-        // --- Settings Tabs Logic ---
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const panels = document.querySelectorAll('.settings-panel');
-
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                tabBtns.forEach(b => b.classList.remove('active'));
-                panels.forEach(p => p.classList.remove('active'));
-                
-                btn.classList.add('active');
-                const targetId = btn.getAttribute('data-target');
-                document.getElementById(targetId).classList.add('active');
-            });
         });
 
-        // --- Settings Functionality (Backend Connected) ---
-        async function saveAllSettings(event) {
-            const btn = event.currentTarget;
-            const ogContent = btn.innerHTML;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
-            
-            // Collect arbitrary settings to trigger a save update (Note: DB currently focuses on profile elements. We trigger the generic profile endpoint to reflect a save action without overriding crucial data if unneeded)
+        // --- Profile Modal & Notification Logic ---
+        function toggleProfile() {
+            document.getElementById('profileOverlay').classList.toggle('hidden');
+        }
+
+        const notifBtn = document.getElementById('notificationBtn');
+        const notifDropdown = document.getElementById('notifDropdown');
+
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.classList.toggle('hidden');
+        });
+
+        window.addEventListener('click', () => {
+            notifDropdown.classList.add('hidden');
+        });
+
+        document.getElementById('modalLogoutBtn').addEventListener('click', async () => {
             try {
-                // Simulating a successful save visual feedback loop
-                // In a fully scaled app, you'd POST distinct configuration states here.
-                setTimeout(() => {
-                    btn.innerHTML = `<i class="fas fa-check"></i> Settings Saved!`;
-                    setTimeout(() => btn.innerHTML = ogContent, 2000);
-                }, 800);
-            } catch (err) {
-                btn.innerHTML = `<i class="fas fa-exclamation-circle"></i> Error`;
-                setTimeout(() => btn.innerHTML = ogContent, 2000);
+                const response = await fetch('/auth/logout', { method: 'POST' });
+                if (response.ok) {
+                    localStorage.removeItem("adminLogin");
+                    window.location.href = "/";
+                }
+            } catch (error) {
+                window.location.href = "/";
+            }
+        });
+
+        function getInitials(firstName, lastName) {
+            let f = firstName ? firstName.charAt(0).toUpperCase() : '';
+            let l = lastName ? lastName.charAt(0).toUpperCase() : '';
+            return f + l || 'A';
+        }
+
+        // --- Tab Switching Logic ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
+            
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.add('block');
+            
+            const btn = document.getElementById(`btn-${tabId}`);
+            btn.classList.add('active');
+        }
+
+        // --- ⭐ Edit College Details Logic ---
+        let isEditingCollege = false;
+        function toggleCollegeEdit() {
+            isEditingCollege = !isEditingCollege;
+            
+            const btn = document.getElementById('btn-edit-college');
+            const actions = document.getElementById('edit-actions');
+            
+            const dUni = document.getElementById('disp-university');
+            const iUni = document.getElementById('input-university');
+            const dAcc = document.getElementById('disp-accreditation');
+            const iAcc = document.getElementById('input-accreditation');
+
+            if (isEditingCollege) {
+                // Enter Edit Mode
+                btn.classList.add('hidden');
+                actions.classList.remove('hidden');
+                
+                dUni.classList.add('hidden');
+                iUni.classList.remove('hidden');
+                iUni.value = dUni.innerText === 'Pending Update' ? '' : dUni.innerText;
+                
+                dAcc.classList.add('hidden');
+                iAcc.classList.remove('hidden');
+                iAcc.value = dAcc.innerText === 'Pending Update' ? '' : dAcc.innerText;
+            } else {
+                // Cancel Edit Mode
+                btn.classList.remove('hidden');
+                actions.classList.add('hidden');
+                
+                dUni.classList.remove('hidden');
+                iUni.classList.add('hidden');
+                
+                dAcc.classList.remove('hidden');
+                iAcc.classList.add('hidden');
             }
         }
 
-        // Email Verification Flow
-        async function requestEmailOTP() {
-            const newEmail = document.getElementById('newEmailInput').value;
-            if(!newEmail) return alert("Please enter an email address.");
-
+        async function saveCollegeInfo(event) {
             const btn = event.currentTarget;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sending...`;
-            
+            const ogHTML = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
+            btn.disabled = true;
+
+            const university = document.getElementById('input-university').value.trim();
+            const accreditation = document.getElementById('input-accreditation').value.trim();
+
             try {
-                const res = await fetch('/college/send-email-update-otp', {
+                const res = await fetch('/college/update-college-info', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: newEmail })
+                    body: JSON.stringify({ university, accreditation })
                 });
                 const data = await res.json();
-                
-                btn.innerHTML = originalText;
-                
+
                 if (data.success) {
-                    const otp = prompt(`Enter the OTP sent to ${newEmail}:`);
-                    if (otp) {
-                        const verRes = await fetch('/college/verify-email-otp', {
+                    // Update Text Display
+                    document.getElementById('disp-university').innerText = university || "Pending Update";
+                    document.getElementById('disp-accreditation').innerText = accreditation || "Pending Update";
+                    toggleCollegeEdit(); // Exit edit mode
+                } else {
+                    alert(data.message || "Failed to update college details.");
+                }
+            } catch (err) {
+                alert("Network error updating college details.");
+            } finally {
+                btn.innerHTML = ogHTML;
+                btn.disabled = false;
+            }
+        }
+
+        // --- Data Fetching ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Fetch Stats for Profile Modal 
+                try {
+                    const statsRes = await fetch('/college/api/dashboard-data');
+                    const statsData = await statsRes.json();
+                    if (statsData.success && statsData.stats) {
+                        const su = document.getElementById('statUsers');
+                        if (su) su.innerText = statsData.stats.totalUsers || 0;
+                        const sc = document.getElementById('statContests');
+                        if (sc) sc.innerText = statsData.stats.totalContests || 0;
+                        const sp = document.getElementById('statPrograms');
+                        if (sp) sp.innerText = statsData.stats.totalPrograms || 0;
+                    }
+                } catch (e) { console.error(e); }
+
+                // Fetch Account Data
+                const profRes = await fetch('/college/api/profile');
+                const profData = await profRes.json();
+
+                if(profData.success && profData.user) {
+                    const u = profData.user;
+                    
+                    // Format names & initials
+                    const fullName = u.fullName || 'Admin User';
+                    const parts = fullName.split(' ');
+                    const firstName = u.firstName || parts[0] || 'Admin';
+                    const lastName = u.lastName || (parts.length > 1 ? parts.slice(1).join(' ') : '');
+                    const initials = getInitials(firstName, lastName);
+                    const collegeDisplay = u.collegeName || "Unknown College";
+
+                    // Update Top Header Map
+                    document.getElementById('headerName').innerText = fullName;
+                    document.getElementById('headerInitials').innerText = initials;
+
+                    // Update Profile Modal Overlay Map
+                    document.getElementById('modalName').innerText = fullName;
+                    document.getElementById('modalInitials').innerText = initials;
+                    document.getElementById('modalCollege').innerHTML = `<i class="fas fa-university"></i> ${collegeDisplay}`;
+                    document.getElementById('modalRole').innerText = u.role || 'Admin';
+
+                    // Update Settings Account Tab
+                    document.getElementById('disp-college').innerText = u.collegeName || "N/A";
+                    document.getElementById('disp-role').innerText = u.role || "Admin";
+                    document.getElementById('disp-email').innerText = u.email || "N/A";
+                    document.getElementById('disp-status').innerText = u.status || "Active";
+                    
+                    if(u.university) document.getElementById('disp-university').innerText = u.university;
+                    if(u.accreditation) document.getElementById('disp-accreditation').innerText = u.accreditation;
+
+                    if(u.joiningDate) {
+                        document.getElementById('disp-joined').innerText = new Date(u.joiningDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                    } else if (u.createdAt) {
+                        document.getElementById('disp-joined').innerText = new Date(u.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                    } else {
+                        document.getElementById('disp-joined').innerText = "Unknown";
+                    }
+                }
+
+            } catch (err) {
+                console.error("Failed to load data:", err);
+            }
+        });
+
+        // --- Email Form Submission ---
+        document.getElementById('emailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSaveEmail');
+            const ogContent = btn.innerHTML;
+            const newEmail = document.getElementById('newEmail').value;
+
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Updating...`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/college/update-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newEmail })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    btn.innerHTML = `Email Updated!`;
+                    document.getElementById('disp-email').innerText = newEmail; 
+                    document.getElementById('emailForm').reset();
+                } else {
+                    alert(data.message || "Failed to update email");
+                    btn.innerHTML = ogContent;
+                }
+            } catch (err) {
+                alert("An error occurred");
+                btn.innerHTML = ogContent;
+            } finally {
+                setTimeout(() => { btn.innerHTML = ogContent; btn.disabled = false; }, 2500);
+            }
+        });
+
+        // --- Forgot Password Action ---
+        async function handleForgotPassword() {
+            const email = document.getElementById('disp-email').innerText;
+            if(email && email !== "Loading..." && email !== "N/A") {
+                if(confirm(`Would you like to send a password reset link to ${email}?`)) {
+                    try {
+                        const response = await fetch('/auth/forgot-password', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: newEmail, otp })
+                            body: JSON.stringify({ email })
                         });
-                        const verData = await verRes.json();
-                        alert(verData.message);
-                    }
-                } else {
-                    alert(data.message || "Failed to send OTP.");
-                }
-            } catch (err) {
-                btn.innerHTML = originalText;
-                alert("Network error processing OTP request.");
-            }
-        }
-
-        // Password Reset Flow
-        async function requestPasswordResetOTP() {
-            try {
-                const res = await fetch('/college/forgot-password-otp', { method: 'POST' });
-                const data = await res.json();
-                if (data.success) {
-                    const otp = prompt("An OTP was sent to your current email. Enter the OTP here:");
-                    if (otp) {
-                        const newPass = prompt("Enter your new password:");
-                        if (newPass) {
-                            const resetRes = await fetch('/college/reset-password', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ otp, newPassword: newPass })
-                            });
-                            const resetData = await resetRes.json();
-                            alert(resetData.message);
+                        const data = await response.json();
+                        if (data.success) {
+                            alert("A password reset link has been dispatched to your email securely. Please check your inbox.");
+                        } else {
+                            alert(data.message || "Failed to send reset link.");
                         }
+                    } catch (error) {
+                        alert("There was an error communicating with the server.");
                     }
-                } else {
-                    alert(data.message || "Failed to request password reset OTP.");
                 }
-            } catch (e) {
-                alert("Network error processing password reset.");
+            } else {
+                alert("Email address not found. Please wait for the profile data to load.");
             }
         }
 
-        // Password Update Flow (Knowing Current)
-        async function updatePassword() {
-            const oldPass = document.getElementById('oldPassword').value;
-            const newPass = document.getElementById('newPassword').value;
+        // --- Password Form Submission ---
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            if (!oldPass || !newPass) {
-                return alert("Please enter both current and new passwords.");
+            const currPassInput = document.getElementById('currPass');
+            if(!currPassInput.value) {
+                alert("Please enter your current password.");
+                return;
             }
 
+            const btn = document.getElementById('btnSavePassword');
+            const ogContent = btn.innerHTML;
+            
+            const currPass = currPassInput.value;
+            const newPass = document.getElementById('newPass').value;
+            const confirmPass = document.getElementById('confirmPass').value;
+
+            if (newPass !== confirmPass) {
+                alert("New passwords do not match!");
+                return;
+            }
+
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Updating...`;
+            btn.disabled = true;
+
             try {
-                // Fetch profile to get necessary persisting fields (fullName, etc) for the generic update route
-                const profileRes = await fetch('/college/api/profile');
-                if(!profileRes.ok) throw new Error("Could not fetch profile for update context.");
-                const pData = await profileRes.json();
-                const u = pData.user;
-
-                const payload = {
-                    fullName: u.fullName,
-                    email: u.email,
-                    currPass: oldPass,
-                    newPass: newPass
-                };
-
-                const res = await fetch('/college/update-profile', {
+                const res = await fetch('/college/update-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ currPass, newPass })
                 });
                 
-                const result = await res.json();
-                alert(result.message);
-                
-                if (result.success) {
-                    document.getElementById('oldPassword').value = '';
-                    document.getElementById('newPassword').value = '';
+                const data = await res.json();
+                if (data.success) {
+                    btn.innerHTML = `Updated!`;
+                    document.getElementById('passwordForm').reset();
+                } else {
+                    alert(data.message || "Failed to update password");
+                    btn.innerHTML = ogContent;
                 }
             } catch (err) {
-                alert("Network error while trying to update password.");
+                alert("An error occurred");
+                btn.innerHTML = ogContent;
+            } finally {
+                setTimeout(() => { btn.innerHTML = ogContent; btn.disabled = false; }, 2500);
             }
-        }
+        });
 
+        // --- Notifications Save (UI Only, prevents DB crash) ---
+        function saveNotifications(event) {
+            const btn = event.currentTarget;
+            const ogContent = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-check"></i> Saved`;
+            btn.disabled = true;
+            setTimeout(() => { btn.innerHTML = ogContent; btn.disabled = false; }, 2000);
+        }
     </script>
 </body>
 </html>

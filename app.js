@@ -64,6 +64,11 @@ app.use(session({
     cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 day expiration
 }));
 
+// Always serve the public landing page at the root URL.
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views/public/index.html'));
+});
+
 // ==========================================
 // 3. EMAIL CONFIGURATION (Nodemailer)
 // ==========================================

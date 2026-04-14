@@ -8,16 +8,6 @@ module.exports = (db) => {
     // PUBLIC VIEWS
     // ==========================================
     router.get('/', (req, res) => {
-        // Redirect if already logged in
-        if (req.session.user) {
-            if (req.session.user.role === 'superadmin') return res.redirect('/superadmin/dashboard');
-            if (req.session.user.role === 'admin') return res.redirect('/college/dashboard');
-            if (req.session.user.role === 'hod') return res.redirect('/college/hod/dashboard');
-            if (req.session.user.role === 'hos') return res.redirect('/hos/dashboard');
-            if (req.session.user.role === 'faculty') return res.redirect('/faculty/dashboard');
-            if (req.session.user.role === 'individual') return res.redirect('/individual/dashboard');
-            if (req.session.user.role === 'student') return res.redirect('/student/dashboard');
-        }
         res.sendFile(path.join(__dirname, '../views/public/index.html'));
     });
 

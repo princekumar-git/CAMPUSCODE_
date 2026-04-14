@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>CampusCode</title>
+  <link rel="icon" href="/campuscode-logo.jpeg" type="image/jpeg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -99,9 +100,9 @@
 
         try {
             const [progRes, branchRes, secRes] = await Promise.all([
-                fetch('/college/programs').then(r => r.json()),
-                fetch('/college/branches').then(r => r.json()),
-                fetch('/college/sections').then(r => r.json())
+                apiGetJson('/college/api/programs', '/college/programs'),
+                apiGetJson('/college/api/branches', '/college/branches'),
+                apiGetJson('/college/api/sections', '/college/sections')
             ]);
 
             let maxYear = 1;
@@ -208,6 +209,7 @@
          <a href="/college/program" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Programs</span></a>
          <a href="/college/contest" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
          <a href="/college/manage_user" class="nav-item active"><i class="fa-solid fa-users"></i><span>User</span></a>
+                <a href="/college/community" class="nav-item "><i class="fas fa-comments"></i><span>Community</span></a>
          <a href="/college/report" class="nav-item"><i class="fas fa-file-invoice"></i><span>Reports</span></a>
          <a href="/college/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
       </nav>
@@ -555,6 +557,105 @@ let dbBranches = [];
 let dbSections = []; 
 let pendingExcelData = null; // Stored parsed excel data waiting for password
 
+async function apiGetJson(primaryPath, fallbackPath = null) {
+    const paths = [primaryPath, fallbackPath].filter(Boolean);
+    let lastError = null;
+
+    for (const path of paths) {
+        try {
+            const response = await fetch(path);
+            if (!response.ok) {
+                lastError = new Error(`Failed ${path} with ${response.status}`);
+                continue;
+            }
+            return await response.json();
+        } catch (error) {
+            lastError = error;
+        }
+    }
+
+    throw lastError || new Error(`Unable to fetch ${primaryPath}`);
+}
+
+function normalizeLookupValue(value) {
+    return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function normalizeYearValue(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const match = raw.match(/\d+/);
+    return match ? String(parseInt(match[0], 10)) : normalizeLookupValue(raw);
+}
+
+function normalizeLocalAcademicData(user = {}) {
+    const role = String(user.role || activeTab || 'student').toLowerCase();
+    const rawProgram = String(user.program || '').trim();
+    const rawBranch = String(user.branch || '').trim();
+    const rawYear = String(user.year || '').trim();
+    const rawSection = String(user.section || '').trim();
+
+    const normalizedProgram = normalizeLookupValue(rawProgram);
+    const normalizedBranch = normalizeLookupValue(rawBranch);
+    const normalizedYear = normalizeYearValue(rawYear);
+    const normalizedSection = normalizeLookupValue(rawSection);
+
+    let matchedProgram = null;
+    if (normalizedProgram) {
+        matchedProgram = dbPrograms.find(program =>
+            normalizeLookupValue(program.name) === normalizedProgram ||
+            normalizeLookupValue(program.code) === normalizedProgram
+        ) || null;
+    }
+
+    let matchedBranch = null;
+    if (normalizedBranch) {
+        matchedBranch = dbBranches.find(branch => {
+            const sameProgram = !matchedProgram || Number(branch.program_id) === Number(matchedProgram.id);
+            return sameProgram && (
+                normalizeLookupValue(branch.name) === normalizedBranch ||
+                normalizeLookupValue(branch.abbreviation) === normalizedBranch ||
+                normalizeLookupValue(branch.code) === normalizedBranch
+            );
+        }) || null;
+    }
+
+    if (!matchedProgram && matchedBranch) {
+        matchedProgram = dbPrograms.find(program => Number(program.id) === Number(matchedBranch.program_id)) || null;
+    }
+
+    const branchSections = matchedBranch
+        ? dbSections.filter(section => Number(section.branch_id) === Number(matchedBranch.id))
+        : [];
+
+    let matchedSection = null;
+    if (normalizedSection) {
+        matchedSection = branchSections.find(section =>
+            normalizeLookupValue(section.name) === normalizedSection
+        ) || null;
+    }
+
+    if (!matchedSection && normalizedYear) {
+        const sameYearSections = branchSections.filter(section => normalizeYearValue(section.year) === normalizedYear);
+        if (sameYearSections.length === 1) {
+            matchedSection = sameYearSections[0];
+        }
+    }
+
+    return {
+        ...user,
+        role,
+        program: matchedProgram ? matchedProgram.name : rawProgram,
+        branch: matchedBranch ? matchedBranch.name : rawBranch,
+        year: role === 'student'
+            ? (matchedSection ? String(matchedSection.year || '') : (normalizedYear || rawYear))
+            : '',
+        section: role === 'student'
+            ? (matchedSection ? matchedSection.name : rawSection)
+            : ''
+    };
+}
+
 async function fetchData() {
     try {
        const profileRes = await fetch('/college/api/profile');
@@ -641,14 +742,9 @@ async function fetchData() {
         }
 
     // Fetch hierarchy datasets (use unified /college/api endpoints)
-    const resPrograms = await fetch('/college/api/programs');
-    if (resPrograms.ok) dbPrograms = (await resPrograms.json()).data || [];
-
-    const resBranches = await fetch('/college/api/branches');
-    if (resBranches.ok) dbBranches = (await resBranches.json()).data || [];
-
-    const resSec = await fetch('/college/api/sections');
-    if (resSec.ok) dbSections = (await resSec.json()).data || [];
+    dbPrograms = (await apiGetJson('/college/api/programs', '/college/programs')).data || [];
+    dbBranches = (await apiGetJson('/college/api/branches', '/college/branches')).data || [];
+    dbSections = (await apiGetJson('/college/api/sections', '/college/sections')).data || [];
 
         populateMainFilters();
 
@@ -941,6 +1037,25 @@ function filterBranches(programName, selectedBranch = '') {
     }
 }
 
+function updateSectionsByYear(branchName, selectedYear = '', selectedSection = '') {
+    const sectionSelect = document.getElementById('modalSection');
+    if(!sectionSelect) return;
+    sectionSelect.innerHTML = '<option value="">Select Section</option>';
+
+    const branch = dbBranches.find(b => b.name === branchName);
+    if (!branch) return;
+
+    let branchSections = dbSections.filter(s => s.branch_id === branch.id);
+    if (selectedYear) {
+        branchSections = branchSections.filter(s => String(s.year) === String(selectedYear));
+    }
+
+    const sections = [...new Set(branchSections.map(s => s.name))].sort();
+    sections.forEach(s => {
+        sectionSelect.innerHTML += `<option value="${s}" ${selectedSection === s ? 'selected' : ''}>${s}</option>`;
+    });
+}
+
 function filterYearsSections(branchName, selectedYear = '', selectedSection = '') {
     const yearSelect = document.getElementById('modalYear');
     const sectionSelect = document.getElementById('modalSection');
@@ -950,10 +1065,9 @@ function filterYearsSections(branchName, selectedYear = '', selectedSection = ''
     sectionSelect.innerHTML = '<option value="">Select Section</option>';
     if (branch) {
         const branchSections = dbSections.filter(s => s.branch_id === branch.id);
-        const years = [...new Set(branchSections.map(s => s.year))].sort();
+        const years = [...new Set(branchSections.map(s => s.year))].sort((a, b) => Number(a) - Number(b));
         years.forEach(y => { yearSelect.innerHTML += `<option value="${y}" ${selectedYear == y ? 'selected' : ''}>${y}</option>`; });
-        const sections = [...new Set(branchSections.map(s => s.name))].sort();
-        sections.forEach(s => { sectionSelect.innerHTML += `<option value="${s}" ${selectedSection === s ? 'selected' : ''}>${s}</option>`; });
+        updateSectionsByYear(branchName, selectedYear, selectedSection);
     }
 }
 
@@ -1043,7 +1157,7 @@ function renderModalFields(type, userData = {}) {
         html += `
             <div><label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Program</label><select id="modalProgram" onchange="filterBranches(this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">${programOptions}</select></div>
             <div><label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Branch</label><select id="modalBranch" onchange="filterYearsSections(this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white"><option value="">Select Branch</option></select></div>
-            <div><label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Year</label><select id="modalYear" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white"><option value="">Select Year</option></select></div>
+            <div><label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Year</label><select id="modalYear" onchange="updateSectionsByYear(document.getElementById('modalBranch').value, this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white"><option value="">Select Year</option></select></div>
             <div><label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Section</label><select id="modalSection" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white"><option value="">Select Section</option></select></div>
         `;
     } else {
@@ -1310,7 +1424,7 @@ async function processBulkImport() {
         
         const defaultRole = activeTab === 'student' ? 'student' : 'faculty';
 
-        return {
+        return normalizeLocalAcademicData({
             fullName: normalizedRow['fullName'] || '',
             email: normalizedRow['email'] || '',
             role: String(normalizedRow['role'] || defaultRole).toLowerCase(),
@@ -1318,8 +1432,8 @@ async function processBulkImport() {
             branch: String(normalizedRow['branch'] || '').toUpperCase(),
             year: String(normalizedRow['year'] || '').toUpperCase(),
             section: String(normalizedRow['section'] || '').toUpperCase(),
-            defaultPassword: fallbackPassword 
-        };
+            defaultPassword: fallbackPassword
+        });
     }).filter(user => user.fullName && user.email); 
     
     if (processedData.length === 0) {

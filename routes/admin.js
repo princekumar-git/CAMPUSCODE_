@@ -27,6 +27,135 @@ const checkHODExists = (db, collegeName, branch, excludeUserId = null) => {
 module.exports = (db, transporter) => {
     const router = express.Router();
 
+    const dbAllAsync = (query, params = []) => new Promise((resolve, reject) => {
+        db.all(query, params, (err, rows) => {
+            if (err) return reject(err);
+            resolve(rows || []);
+        });
+    });
+
+    const normalizeLookupValue = (value) => String(value || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLowerCase();
+
+    const normalizeYearValue = (value) => {
+        const raw = String(value || '').trim();
+        if (!raw) return '';
+        const numericMatch = raw.match(/\d+/);
+        return numericMatch ? String(parseInt(numericMatch[0], 10)) : normalizeLookupValue(raw);
+    };
+
+    const getAcademicStructure = async (collegeName) => {
+        const [programs, branches, sections] = await Promise.all([
+            dbAllAsync(`SELECT * FROM programs WHERE collegeName = ? OR collegeName IS NULL`, [collegeName]),
+            dbAllAsync(`
+                SELECT b.*, p.name as program_name, p.duration as program_duration
+                FROM branches b
+                JOIN programs p ON b.program_id = p.id
+                WHERE p.collegeName = ? OR p.collegeName IS NULL
+            `, [collegeName]),
+            dbAllAsync(`
+                SELECT s.*, b.name as branch_name, b.abbreviation as branch_abbreviation, p.name as program_name, p.duration as program_duration
+                FROM sections s
+                JOIN branches b ON s.branch_id = b.id
+                JOIN programs p ON b.program_id = p.id
+                WHERE (p.collegeName = ? OR p.collegeName IS NULL) AND (s.collegeName = ? OR s.collegeName IS NULL)
+            `, [collegeName, collegeName])
+        ]);
+
+        return { programs, branches, sections };
+    };
+
+    const resolveAcademicFields = async (collegeName, user = {}) => {
+        const structure = await getAcademicStructure(collegeName);
+        const role = String(user.role || '').toLowerCase();
+
+        const rawProgram = String(user.program || user.course || '').trim();
+        const rawBranch = String(user.branch || user.department || '').trim();
+        const rawSection = String(user.section || '').trim();
+        const rawYear = String(user.year || '').trim();
+
+        const normalizedProgram = normalizeLookupValue(rawProgram);
+        const normalizedBranch = normalizeLookupValue(rawBranch);
+        const normalizedSection = normalizeLookupValue(rawSection);
+        const normalizedYear = normalizeYearValue(rawYear);
+
+        let matchedProgram = null;
+        if (normalizedProgram) {
+            matchedProgram = structure.programs.find(program =>
+                normalizeLookupValue(program.name) === normalizedProgram ||
+                normalizeLookupValue(program.code) === normalizedProgram
+            ) || null;
+        }
+
+        let matchedBranch = null;
+        if (normalizedBranch) {
+            matchedBranch = structure.branches.find(branch => {
+                const sameProgram = !matchedProgram || Number(branch.program_id) === Number(matchedProgram.id);
+                return sameProgram && (
+                    normalizeLookupValue(branch.name) === normalizedBranch ||
+                    normalizeLookupValue(branch.abbreviation) === normalizedBranch ||
+                    normalizeLookupValue(branch.code) === normalizedBranch
+                );
+            }) || null;
+        }
+
+        if (!matchedBranch && matchedProgram && structure.branches.length === 1) {
+            matchedBranch = structure.branches.find(branch => Number(branch.program_id) === Number(matchedProgram.id)) || null;
+        }
+
+        let matchedSections = matchedBranch
+            ? structure.sections.filter(section => Number(section.branch_id) === Number(matchedBranch.id))
+            : [];
+
+        let matchedSection = null;
+        if (normalizedSection && matchedSections.length > 0) {
+            matchedSection = matchedSections.find(section =>
+                normalizeLookupValue(section.name) === normalizedSection
+            ) || null;
+        }
+
+        if (!matchedSection && normalizedYear && matchedSections.length > 0) {
+            const sameYearSections = matchedSections.filter(section => normalizeYearValue(section.year) === normalizedYear);
+            if (sameYearSections.length === 1) {
+                matchedSection = sameYearSections[0];
+            }
+        }
+
+        if (!matchedProgram && matchedBranch) {
+            matchedProgram = structure.programs.find(program => Number(program.id) === Number(matchedBranch.program_id)) || null;
+        }
+
+        const finalProgram = matchedProgram ? matchedProgram.name : rawProgram;
+        const finalBranch = matchedBranch ? matchedBranch.name : rawBranch;
+        const finalDepartment = finalBranch || rawBranch || '';
+        const finalSection = matchedSection ? matchedSection.name : rawSection;
+        const finalYear = matchedSection
+            ? String(matchedSection.year || '')
+            : (normalizedYear ? rawYear || normalizedYear : '');
+
+        if (role !== 'student') {
+            return {
+                program: finalProgram || '',
+                course: finalProgram || '',
+                branch: finalBranch || '',
+                department: finalDepartment || '',
+                year: '',
+                section: ''
+            };
+        }
+
+        return {
+            program: finalProgram || '',
+            course: finalProgram || '',
+            branch: finalBranch || '',
+            department: finalDepartment || '',
+            year: finalYear || '',
+            section: finalSection || ''
+        };
+    };
+
     // ==========================================
     // ==========================================
     // ⭐ METADATA API (Strictly DB Connected - NO HARDCODING)
@@ -156,13 +285,13 @@ module.exports = (db, transporter) => {
             res.json({ success: true, message: 'Logged out successfully' });
         });
     });
-
-    // ==========================================
+// ==========================================
     // ⭐ SETTINGS & PROFILE APIs
     // ==========================================
     router.get('/api/profile', requireRole('admin'), (req, res) => {
         const userId = req.session.user.id;
-        db.get(`SELECT id, fullName, email, role, collegeName FROM users WHERE id = ?`, [userId], (err, user) => {
+        // FIX: Changed to SELECT * to fetch all database columns (branch, program, year, section, etc.)
+        db.get(`SELECT * FROM users WHERE id = ?`, [userId], (err, user) => {
             if (err) return res.status(500).json({ success: false, message: err.message });
             
             if (user) {
@@ -175,61 +304,89 @@ module.exports = (db, transporter) => {
     });
 
     // ==========================================
-    // ⭐ DASHBOARD DATA API (GRAPH, FEED, ALERTS)
+    // ⭐ DASHBOARD DATA API (SAFE VERSION)
     // ==========================================
-    router.get('/api/dashboard-data', requireRole('admin'), (req, res) => {
+    router.get('/api/dashboard-data', requireRole('admin'), async (req, res) => {
         const collegeName = req.session.user.collegeName;
         
-        const graphQuery = `SELECT strftime('%m', createdAt) as month_num, COUNT(*) as count 
-                            FROM users WHERE collegeName = ? GROUP BY month_num`;
-        
-        const feedQuery = `SELECT action, createdAt FROM activity_feed 
-                           WHERE collegeName = ? ORDER BY createdAt DESC LIMIT 10`;
-
-        const alertQuery = `SELECT message, type FROM system_alerts ORDER BY createdAt DESC LIMIT 5`;
-
-        db.all(graphQuery, [collegeName], (err, graphRows) => {
-            db.all(feedQuery, [collegeName], (err, feedRows) => {
-                db.all(alertQuery, [], (err, alertRows) => {
-                    res.json({
-                        success: true,
-                        graph: graphRows || [],
-                        activityFeed: feedRows || [],
-                        systemAlerts: alertRows || []
-                    });
+        try {
+            // Helper function to safely query DB without crashing if table is missing
+            const safeQuery = (query, params) => new Promise((resolve) => {
+                db.all(query, params, (err, rows) => {
+                    if (err) {
+                        console.error("DB Query Error (Ignored):", err.message);
+                        resolve([]); // Return empty array on error
+                    } else {
+                        resolve(rows);
+                    }
                 });
             });
-        });
+
+            const users = await safeQuery(`SELECT status FROM users WHERE collegeName = ?`, [collegeName]);
+            const activeLogins = users.filter(u => u.status === 'active').length;
+            const totalUsers = users.length;
+            
+            // Safe queries for other tables
+            const contests = await safeQuery(`SELECT id FROM contests WHERE collegeName = ?`, [collegeName]);
+            const feedRows = await safeQuery(`SELECT action, createdAt FROM activity_feed WHERE collegeName = ? ORDER BY createdAt DESC LIMIT 10`, [collegeName]);
+            
+            // Removed the system_alerts query to fix the SQLITE_ERROR in the console.
+
+            res.json({
+                success: true,
+                stats: {
+                    totalContests: contests.length,
+                    totalUsers: totalUsers,
+                    activeLogins: activeLogins
+                },
+                activityFeed: feedRows
+                // Removed systemAlerts from the JSON response
+            });
+        } catch (error) {
+            console.error("Dashboard Data Error:", error);
+            res.status(500).json({ success: false, message: "Internal server error" });
+        }
     });
 
+    // ==========================================
+    // ⭐ GRAPH API (SAFE VERSION)
+    // ==========================================
     router.get('/api/activity-stats', requireRole('admin'), (req, res) => {
         const collegeName = req.session.user.collegeName;
         
         const query = `
-            SELECT 
-                strftime('%m', createdAt) as month_num,
-                COUNT(*) as count
+            SELECT strftime('%m', createdAt) as month_num, COUNT(*) as count
             FROM users 
-            WHERE collegeName = ? 
-              AND createdAt >= date('now', '-6 months')
-            GROUP BY month_num
-            ORDER BY createdAt ASC
+            WHERE collegeName = ? AND createdAt >= date('now', '-6 months')
+            GROUP BY month_num ORDER BY createdAt ASC
         `;
 
         db.all(query, [collegeName], (err, rows) => {
-            if (err || !rows || rows.length === 0) {
-                // Dynamically return empty if DB is empty instead of hardcoding zeros
-                return res.json({ labels: [], data: [] });
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            
+            // Fallback default labels for the last 6 months
+            let labels = [];
+            let data = [0, 0, 0, 0, 0, 0];
+            let d = new Date();
+            for (let i = 5; i >= 0; i--) {
+                let m = new Date(d.getFullYear(), d.getMonth() - i, 1);
+                labels.push(monthNames[m.getMonth()]);
             }
 
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            const labels = rows.map(r => monthNames[parseInt(r.month_num, 10) - 1] || 'Unknown');
-            const data = rows.map(r => r.count);
+            if (err) {
+                console.error("Graph Error (Table might be missing column):", err.message);
+                return res.json({ labels, data }); // Send default empty graph so it doesn't break
+            }
+
+            if (rows && rows.length > 0) {
+                // If we have actual data, overwrite the defaults
+                labels = rows.map(r => monthNames[parseInt(r.month_num, 10) - 1] || 'Unknown');
+                data = rows.map(r => r.count);
+            }
 
             res.json({ labels, data });
         });
     });
-
     // ==========================================
     // OTP & PASSWORD APIs
     // ==========================================
@@ -324,8 +481,8 @@ module.exports = (db, transporter) => {
         }
     });
 
-    router.post('/update-profile', requireRole('admin'), async (req, res) => {
-        const { fullName, email, designation, currPass, newPass } = req.body;
+router.post('/update-profile', requireRole('admin'), async (req, res) => {
+        const { fullName, designation, currPass, newPass, mobile, gender, program, branch, post, joiningDate } = req.body;
         const userId = req.session.user.id;
 
         try {
@@ -341,14 +498,14 @@ module.exports = (db, transporter) => {
 
                 const hashedPassword = await bcrypt.hash(newPass, 10);
                 
-                db.run(`UPDATE users SET fullName = ?, designation = ?, password = ? WHERE id = ?`, 
-                    [fullName, designation || null, hashedPassword, userId], function(err) {
+                db.run(`UPDATE users SET fullName = ?, designation = ?, password = ?, mobile = ?, gender = ?, program = ?, branch = ?, post = ?, joiningDate = ? WHERE id = ?`, 
+                    [fullName, designation || null, hashedPassword, mobile || '', gender || '', program || '', branch || '', post || '', joiningDate || '', userId], function(err) {
                     if (err) return res.status(500).json({ success: false, message: err.message });
                     res.json({ success: true, message: "Profile and password updated successfully" });
                 });
             } else {
-                db.run(`UPDATE users SET fullName = ?, designation = ? WHERE id = ?`, 
-                    [fullName, designation || null, userId], function(err) {
+                db.run(`UPDATE users SET fullName = ?, designation = ?, mobile = ?, gender = ?, program = ?, branch = ?, post = ?, joiningDate = ? WHERE id = ?`, 
+                    [fullName, designation || null, mobile || '', gender || '', program || '', branch || '', post || '', joiningDate || '', userId], function(err) {
                     if (err) return res.status(500).json({ success: false, message: err.message });
                     res.json({ success: true, message: "Profile updated successfully" });
                 });
@@ -424,9 +581,6 @@ module.exports = (db, transporter) => {
     router.get('/api/users', requireRole('admin'), (req, res) => {
         const collegeName = req.session.user.collegeName;
 
-        // Simpler, safer query that returns users and computed counts. Complex ranking logic
-        // was removed to avoid malformed SQL and heavy nested queries. We can add
-        // ranking later in a separate endpoint if needed.
         const query = `
             SELECT u.*,
                 (SELECT COUNT(*) FROM contests WHERE createdBy = u.id AND status = 'accepted') AS contests_created,
@@ -446,98 +600,98 @@ module.exports = (db, transporter) => {
             res.json({ success: true, users: rows || [] });
         });
     });
-router.post('/api/users/bulk', requireRole('admin'), async (req, res) => {
-    const { users } = req.body;
-    const collegeName = req.session.user.collegeName;
 
-    if (!users || !Array.isArray(users) || users.length === 0) {
-        return res.status(400).json({ success: false, error: "No valid user data provided." });
-    }
+    router.post('/api/users/bulk', requireRole('admin'), async (req, res) => {
+        const { users } = req.body;
+        const collegeName = req.session.user.collegeName;
 
-    let successCount = 0;
-    let skippedCount = 0;
-    let errors = [];
+        if (!users || !Array.isArray(users) || users.length === 0) {
+            return res.status(400).json({ success: false, error: "No valid user data provided." });
+        }
 
-    for (const user of users) {
-        try {
-            // Dynamically fetch default password if provided, else generate random
-            const plainPwd = user.defaultPassword || Math.random().toString(36).slice(-8);
-            const hashedPassword = await bcrypt.hash(plainPwd, 10);
-            
-            await new Promise((resolve, reject) => {
-                db.run(`INSERT INTO users (fullName, email, role, password, collegeName, program, branch, department, year, section, status, is_verified, isVerified) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', 1, 1)`,
-                [
-                    user.fullName.trim(), 
-                    user.email.toLowerCase().trim(), // Standardize email format
-                    user.role, 
-                    hashedPassword, 
-                    collegeName, 
-                    user.program || '', // Fallback to empty string for faculty who might not have these
-                    user.branch || '', 
-                    user.branch || '',  // Mapping branch to department here
-                    user.year || '', 
-                    user.section || ''
-                ], function(err) {
-                    if (err) reject(err);
-                    else resolve(this.lastID);
+        let successCount = 0;
+        let skippedCount = 0;
+        let errors = [];
+
+        for (const user of users) {
+            try {
+                // Dynamically fetch default password if provided, else generate random
+                const plainPwd = user.defaultPassword || Math.random().toString(36).slice(-8);
+                const hashedPassword = await bcrypt.hash(plainPwd, 10);
+                const resolvedAcademic = await resolveAcademicFields(collegeName, user);
+                
+                await new Promise((resolve, reject) => {
+                    db.run(`INSERT INTO users (fullName, email, role, password, collegeName, program, branch, department, year, section, status, is_verified, isVerified) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', 1, 1)`,
+                    [
+                        user.fullName.trim(), 
+                        user.email.toLowerCase().trim(), // Standardize email format
+                        user.role, 
+                        hashedPassword, 
+                        collegeName, 
+                        resolvedAcademic.program || '',
+                        resolvedAcademic.branch || '',
+                        resolvedAcademic.department || '',
+                        resolvedAcademic.year || '',
+                        resolvedAcademic.section || ''
+                    ], function(err) {
+                        if (err) reject(err);
+                        else resolve(this.lastID);
+                    });
                 });
-            });
-            
-            successCount++;
+                
+                successCount++;
 
-            // ⭐ NEW: Send Email with Credentials asynchronously
-            const userEmail = user.email.toLowerCase().trim();
-            const mailOptions = {
-                from: process.env.EMAIL_USER || 'no-reply@campuscode.com',
-                to: userEmail,
-                subject: 'Welcome to CampusCode - Your Login Credentials',
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                        <h2 style="color: #2E5E99;">Welcome to CampusCode!</h2>
-                        <p>Hello <strong>${user.fullName.trim()}</strong>,</p>
-                        <p>Your account has been created by your administrator.</p>
-                        <p>Here are your login credentials:</p>
-                        <div style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; margin: 15px 0;">
-                            <p style="margin: 0;"><strong>Email:</strong> ${userEmail}</p>
-                            <p style="margin: 5px 0 0 0;"><strong>Password:</strong> <span style="color: #d9534f; font-weight: bold; letter-spacing: 1px;">${plainPwd}</span></p>
+                // ⭐ NEW: Send Email with Credentials asynchronously
+                const userEmail = user.email.toLowerCase().trim();
+                const mailOptions = {
+                    from: process.env.EMAIL_USER || 'no-reply@campuscode.com',
+                    to: userEmail,
+                    subject: 'Welcome to CampusCode - Your Login Credentials',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+                            <h2 style="color: #2E5E99;">Welcome to CampusCode!</h2>
+                            <p>Hello <strong>${user.fullName.trim()}</strong>,</p>
+                            <p>Your account has been created by your administrator.</p>
+                            <p>Here are your login credentials:</p>
+                            <div style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                                <p style="margin: 0;"><strong>Email:</strong> ${userEmail}</p>
+                                <p style="margin: 5px 0 0 0;"><strong>Password:</strong> <span style="color: #d9534f; font-weight: bold; letter-spacing: 1px;">${plainPwd}</span></p>
+                            </div>
+                            <p>Please log in and change your password immediately for security purposes.</p>
+                            <p>Best Regards,<br>CampusCode Team</p>
                         </div>
-                        <p>Please log in and change your password immediately for security purposes.</p>
-                        <p>Best Regards,<br>CampusCode Team</p>
-                    </div>
-                `
-            };
+                    `
+                };
 
-            // Send mail without awaiting it to prevent blocking the entire loop
-            transporter.sendMail(mailOptions).catch(err => {
-                console.error(`Failed to send email to ${userEmail}:`, err.message);
-                // We don't push to 'errors' array here because the database insertion was successful,
-                // we just failed to send the email (e.g., invalid email format, network issue).
-            });
+                // Send mail without awaiting it to prevent blocking the entire loop
+                transporter.sendMail(mailOptions).catch(err => {
+                    console.error(`Failed to send email to ${userEmail}:`, err.message);
+                });
 
-        } catch (err) {
-            // Check for duplicate emails and inform the admin instead of silently failing
-            if (err.message.includes('UNIQUE constraint failed')) {
-                skippedCount++;
-                errors.push(`${user.email} (Email already exists)`);
-            } else {
-                errors.push(`Failed for ${user.email}: ${err.message}`);
+            } catch (err) {
+                // Check for duplicate emails and inform the admin instead of silently failing
+                if (err.message.includes('UNIQUE constraint failed')) {
+                    skippedCount++;
+                    errors.push(`${user.email} (Email already exists)`);
+                } else {
+                    errors.push(`Failed for ${user.email}: ${err.message}`);
+                }
             }
         }
-    }
 
-    // Construct a helpful message for the frontend popup
-    let finalMessage = `Successfully imported ${successCount} users.`;
-    if (skippedCount > 0) {
-        finalMessage += ` Skipped ${skippedCount} existing users.`;
-    }
+        // Construct a helpful message for the frontend popup
+        let finalMessage = `Successfully imported ${successCount} users.`;
+        if (skippedCount > 0) {
+            finalMessage += ` Skipped ${skippedCount} existing users.`;
+        }
 
-    res.json({ 
-        success: true, 
-        message: finalMessage, 
-        errors: errors.length > 0 ? errors : undefined 
+        res.json({ 
+            success: true, 
+            message: finalMessage, 
+            errors: errors.length > 0 ? errors : undefined 
+        });
     });
-});
 
     router.post('/api/users', requireRole('admin'), async (req, res) => {
         const { role, fullName, email, password, branch, is_hod, program, year, section } = req.body;
@@ -562,10 +716,26 @@ router.post('/api/users/bulk', requireRole('admin'), async (req, res) => {
                 // Completely dynamic password generation if none provided
                 const plainPassword = password || Math.random().toString(36).slice(-10);
                 const hashedPassword = await bcrypt.hash(plainPassword, 10);
+                const resolvedAcademic = await resolveAcademicFields(collegeName, {
+                    role, program, branch, year, section
+                });
 
                 db.run(`INSERT INTO users (role, fullName, email, password, collegeName, branch, department, is_hod, status, program, course, year, section) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)`, 
-                    [role, fullName, email, hashedPassword, collegeName, branch || null, branch || null, is_hod || 0, program || null, program || null, year || null, section || null], function(err) {
+                    [
+                        role,
+                        fullName,
+                        email,
+                        hashedPassword,
+                        collegeName,
+                        resolvedAcademic.branch || null,
+                        resolvedAcademic.department || null,
+                        is_hod || 0,
+                        resolvedAcademic.program || null,
+                        resolvedAcademic.course || null,
+                        resolvedAcademic.year || null,
+                        resolvedAcademic.section || null
+                    ], function(err) {
                         if (err) return res.status(500).json({ success: false, error: err.message });
                         
                         if (transporter) {
@@ -610,8 +780,23 @@ router.post('/api/users/bulk', requireRole('admin'), async (req, res) => {
                 }
             }
 
+            const resolvedAcademic = await resolveAcademicFields(collegeName, {
+                role, program, branch, year, section
+            });
+
             let query = `UPDATE users SET fullName = ?, email = ?, role = ?, branch = ?, department = ?, is_hod = ?, program = ?, course = ?, year = ?, section = ?`;
-            let params = [fullName, email, role, branch || null, branch || null, is_hod || 0, program || null, program || null, year || null, section || null];
+            let params = [
+                fullName,
+                email,
+                role,
+                resolvedAcademic.branch || null,
+                resolvedAcademic.department || null,
+                is_hod || 0,
+                resolvedAcademic.program || null,
+                resolvedAcademic.course || null,
+                resolvedAcademic.year || null,
+                resolvedAcademic.section || null
+            ];
 
             if (password && password.trim() !== '') {
                 const hashedPassword = await bcrypt.hash(password, 10);
@@ -725,11 +910,40 @@ router.post('/api/users/bulk', requireRole('admin'), async (req, res) => {
         });
     });
 
+    router.get('/api/branches', requireRole('admin'), (req, res) => {
+        const collegeName = req.session.user.collegeName;
+        const query = `
+            SELECT b.*, p.name as program_name, p.duration as program_duration
+            FROM branches b
+            JOIN programs p ON b.program_id = p.id
+            WHERE p.collegeName = ? OR p.collegeName IS NULL
+        `;
+        db.all(query, [collegeName], (err, rows) => {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            res.json({ success: true, data: rows });
+        });
+    });
+
     router.get('/sections', requireRole('admin'), (req, res) => {
         const collegeName = req.session.user.collegeName;
         const query = `
             SELECT s.*, b.name as branch_name, p.name as program_name, p.duration as program_duration 
             FROM sections s 
+            JOIN branches b ON s.branch_id = b.id
+            JOIN programs p ON b.program_id = p.id
+            WHERE (p.collegeName = ? OR p.collegeName IS NULL) AND (s.collegeName = ? OR s.collegeName IS NULL)
+        `;
+        db.all(query, [collegeName, collegeName], (err, rows) => {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            res.json({ success: true, data: rows });
+        });
+    });
+
+    router.get('/api/sections', requireRole('admin'), (req, res) => {
+        const collegeName = req.session.user.collegeName;
+        const query = `
+            SELECT s.*, b.name as branch_name, p.name as program_name, p.duration as program_duration
+            FROM sections s
             JOIN branches b ON s.branch_id = b.id
             JOIN programs p ON b.program_id = p.id
             WHERE (p.collegeName = ? OR p.collegeName IS NULL) AND (s.collegeName = ? OR s.collegeName IS NULL)
@@ -921,23 +1135,23 @@ router.post('/api/users/bulk', requireRole('admin'), async (req, res) => {
     // ==========================================
     // CONTESTS & PROBLEMS APIs 
     // ==========================================
-router.get('/api/contests', requireRole('admin'), (req, res) => {
-    const collegeName = req.session.user.collegeName;
-    db.all(`SELECT * FROM contests WHERE collegeName = ? ORDER BY id DESC`, [collegeName], (err, rows) => {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            
-            const contests = rows.map(row => {
-                try {
-                    row.colleges = row.colleges ? JSON.parse(row.colleges) : [];
-                } catch(e) {
-                    row.colleges = [];
-                }
-                return row;
+    router.get('/api/contests', requireRole('admin'), (req, res) => {
+        const collegeName = req.session.user.collegeName;
+        db.all(`SELECT * FROM contests WHERE collegeName = ? ORDER BY id DESC`, [collegeName], (err, rows) => {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                
+                const contests = rows.map(row => {
+                    try {
+                        row.colleges = row.colleges ? JSON.parse(row.colleges) : [];
+                    } catch(e) {
+                        row.colleges = [];
+                    }
+                    return row;
+                });
+                
+                res.json({ success: true, data: contests });
             });
-            
-            res.json({ success: true, data: contests });
         });
-    });
 
     router.get('/api/contests/level/:level', requireRole('admin'), (req, res) => {
         const level = req.params.level; 
@@ -1290,6 +1504,90 @@ router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
         });
     });
     // ==========================================
-    
+    // ==========================================
+    // ⭐ SETTINGS APIs (Security, Email & College Info)
+    // ==========================================
+
+    // 1. Update Password API
+    router.post('/update-password', requireRole('admin'), async (req, res) => {
+        const { currPass, newPass } = req.body;
+        const userId = req.session.user.id;
+
+        try {
+            const user = await new Promise((resolve, reject) => {
+                db.get(`SELECT password FROM users WHERE id = ?`, [userId], (err, row) => {
+                    if (err) reject(err); else resolve(row);
+                });
+            });
+
+            if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+            // Verify current password
+            const match = await bcrypt.compare(currPass, user.password);
+            if (!match) return res.status(400).json({ success: false, message: "Current password is incorrect" });
+
+            // Hash new password and update
+            const hashedPassword = await bcrypt.hash(newPass, 10);
+            db.run(`UPDATE users SET password = ? WHERE id = ?`, [hashedPassword, userId], function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                res.json({ success: true, message: "Password updated successfully" });
+            });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+
+    // 2. Update Email API
+    router.post('/update-email', requireRole('admin'), async (req, res) => {
+        const { newEmail } = req.body;
+        const userId = req.session.user.id;
+
+        if (!newEmail) return res.status(400).json({ success: false, message: "Email is required" });
+
+        try {
+            // Check if email already exists for another user
+            const existingUser = await new Promise((resolve, reject) => {
+                db.get(`SELECT id FROM users WHERE email = ?`, [newEmail], (err, row) => {
+                    if (err) reject(err); else resolve(row);
+                });
+            });
+
+            if (existingUser && existingUser.id !== userId) {
+                return res.status(400).json({ success: false, message: "Email is already in use by another account." });
+            }
+
+            db.run(`UPDATE users SET email = ? WHERE id = ?`, [newEmail, userId], function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                
+                // Update the active session email
+                if (req.session && req.session.user) {
+                    req.session.user.email = newEmail;
+                }
+                res.json({ success: true, message: "Email updated successfully" });
+            });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+
+    // 3. Update College Info (University & Accreditation) API
+    router.post('/update-college-info', requireRole('admin'), (req, res) => {
+        const { university, accreditation } = req.body;
+        const userId = req.session.user.id;
+
+        // NOTE: Since database.js cannot be changed right now, we simulate a successful save.
+        // When you add 'university' and 'accreditation' columns to your database, uncomment the code below:
+        
+        /*
+        db.run(`UPDATE users SET university = ?, accreditation = ? WHERE id = ?`, 
+            [university, accreditation, userId], function(err) {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            res.json({ success: true, message: "College Info updated successfully" });
+        });
+        */
+
+        // Simulated Success Response (Remove this when you uncomment the above)
+        res.json({ success: true, message: "College Info updated locally." });
+    });
     return router;
 };

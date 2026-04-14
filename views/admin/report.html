@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CampusCode</title>
+    <link rel="icon" href="/campuscode-logo.jpeg" type="image/jpeg" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
@@ -13,24 +14,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-   <script>
-      (function() {
-        if (localStorage.getItem('theme') === 'dark') {
-          document.documentElement.classList.add('dark');
-        }
-      })();
-
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            fontFamily: { sans: ["Poppins", "sans-serif"], report: ["Roboto", "sans-serif"] },
-            colors: {
-              primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+    <script>
+        (function () {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
             }
-          } /* Added missing closing brace for 'extend' */
-        }   /* Added missing closing brace for 'theme' */
-      };
+        })();
+
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"], report: ["Roboto", "sans-serif"] },
+                    colors: {
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                    }
+                }
+            }
+        };
     </script>
     <style>
         .report-preview-container {
@@ -51,7 +52,7 @@
             color: #e5e7eb;
         }
 
-        /* Replace the existing .watermark CSS with this */
+        /* Enhanced Watermark Visibility */
         .watermark {
             position: absolute;
             top: 50%;
@@ -63,10 +64,13 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            opacity: 0.03;
-            /* Very faint background */
+            opacity: 0.15; /* Increased opacity for bright mode */
             pointer-events: none;
             z-index: 0;
+        }
+
+        .dark .watermark {
+            opacity: 0.05; /* Kept subtle for dark mode */
         }
 
         .report-table {
@@ -198,30 +202,31 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <button onclick="toggleTheme()" id="themeBtn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
+                <button onclick="toggleTheme()" id="themeBtn"
+                    class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
                     <i class="fas fa-moon"></i>
                 </button>
 
-               <div class="relative">
-                            <button id="notificationBtn"
-                                class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
-                                <i class="fas fa-bell text-xl"></i>
-                                <span
-                                    class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
-                            </button>
-                            <div id="notifDropdown"
-                                class="hidden absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50">
-                                <div
-                                    class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                                    <h3 class="font-semibold text-gray-800 dark:text-white text-sm">Notifications</h3>
-                                    <button class="text-xs text-primary-500 font-medium hover:text-primary-600">Mark all
-                                        read</button>
-                                </div>
-                                <div class="max-h-64 overflow-y-auto p-4 text-center text-xs text-gray-500">
-                                    No new notifications
-                                </div>
-                            </div>
+                <div class="relative">
+                    <button id="notificationBtn"
+                        class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span
+                            class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                    </button>
+                    <div id="notifDropdown"
+                        class="hidden absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50">
+                        <div
+                            class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                            <h3 class="font-semibold text-gray-800 dark:text-white text-sm">Notifications</h3>
+                            <button class="text-xs text-primary-500 font-medium hover:text-primary-600">Mark all
+                                read</button>
                         </div>
+                        <div class="max-h-64 overflow-y-auto p-4 text-center text-xs text-gray-500">
+                            No new notifications
+                        </div>
+                    </div>
+                </div>
                 <div class="relative ml-2 border-l border-gray-200 dark:border-gray-700 pl-4">
                     <button id="headerProfileBtn" onclick="toggleProfile()"
                         class="flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -306,7 +311,7 @@
                                             <div class="flex items-center gap-3"><i
                                                     class="fas fa-user-circle text-primary-400"></i><span
                                                     class="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                                    Profile</span></div>
+                                                    My Profile</span></div>
                                             <i
                                                 class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                                         </button>
@@ -323,7 +328,17 @@
                                                 class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                                         </button>
                                     </a>
-
+                                    <a href="setting.html">
+                                        <button
+                                            class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                            <div class="flex items-center gap-3"><i
+                                                    class="fas fa-cog text-primary-400"></i><span
+                                                    class="text-sm font-medium text-gray-700 dark:text-gray-200"> System
+                                                    Setting</span></div>
+                                            <i
+                                                class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                                        </button>
+                                    </a>
                                     <button id="logoutBtn"
                                         class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
                                         <div
@@ -348,27 +363,13 @@
                                 class="text-[10px] bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-primary-600 font-bold hover:bg-primary-50 transition-colors">RESET</button>
                         </div>
 
-                        <!-- <div>
-                            <label
-                                class="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Search</label>
-                            <div class="relative">
-                                <input type="text" id="searchInput" onkeyup="applyGlobalFilters()"
-                                    placeholder="Name, ID..."
-                                    class="w-full border border-gray-200 dark:border-gray-600 rounded-lg pl-9 pr-3 py-2 text-sm dark:bg-gray-700 dark:text-white outline-none">
-                                <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
-                            </div>
-                        </div> -->
-
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Dept</label>
-                                <select id="deptFilter" onchange="applyGlobalFilters()"
+                                    class="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Program</label>
+                                <select id="programFilter" onchange="applyGlobalFilters()"
                                     class="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-2 text-xs dark:bg-gray-700 dark:text-white outline-none">
                                     <option value="all">All</option>
-                                    <option value="CSE">CSE</option>
-                                    <option value="ECE">ECE</option>
-                                    <option value="ME">ME</option>
                                 </select>
                             </div>
                             <div>
@@ -377,10 +378,6 @@
                                 <select id="yearFilter" onchange="applyGlobalFilters()"
                                     class="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-2 text-xs dark:bg-gray-700 dark:text-white outline-none">
                                     <option value="all">All</option>
-                                    <option value="1st">1st Yr</option>
-                                    <option value="2nd">2nd Yr</option>
-                                    <option value="3rd">3rd Yr</option>
-                                    <option value="4th">4th Yr</option>
                                 </select>
                             </div>
                         </div>
@@ -446,33 +443,28 @@
                                                 data-col="8" onclick="toggleColumn('studentTable', 8)"> Contests</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="studentTable"
-                                                data-col="9" onclick="toggleColumn('studentTable', 9)"> Solved
-                                            Qs</label>
+                                                data-col="9" onclick="toggleColumn('studentTable', 9)"> Solved Qs</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="studentTable"
-                                                data-col="10" onclick="toggleColumn('studentTable', 10)"> Col
-                                            Rank</label>
+                                                data-col="10" onclick="toggleColumn('studentTable', 10)"> Col Rank</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="studentTable"
-                                                data-col="11" onclick="toggleColumn('studentTable', 11)"> Global
-                                            Rank</label>
+                                                data-col="11" onclick="toggleColumn('studentTable', 11)"> Global Rank</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="studentTable"
                                                 data-col="12" onclick="toggleColumn('studentTable', 12)"> Level</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="studentTable"
-                                                data-col="13" onclick="toggleColumn('studentTable', 13)">
-                                            Accuracy</label>
+                                                data-col="13" onclick="toggleColumn('studentTable', 13)"> Accuracy</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="studentTable"
-                                                data-col="14" onclick="toggleColumn('studentTable', 14)"> Last
-                                            Active</label>
+                                                data-col="14" onclick="toggleColumn('studentTable', 14)"> Last Active</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="studentTable"
                                                 data-col="15" onclick="toggleColumn('studentTable', 15)"> Won</label>
                                     </div>
                                 </div>
-
+                                
                                 <div class="border-l-2 border-orange-500 pl-2">
                                     <span class="text-[9px] font-black text-gray-500 block mb-1">CONTEST TABLE</span>
                                     <div class="grid grid-cols-1 gap-1">
@@ -493,19 +485,16 @@
                                                 data-col="4" onclick="toggleColumn('contestTable', 4)"> Dur.</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="contestTable"
-                                                data-col="5" onclick="toggleColumn('contestTable', 5)"> Created
-                                            By</label>
+                                                data-col="5" onclick="toggleColumn('contestTable', 5)"> Created By</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="contestTable"
-                                                data-col="6" onclick="toggleColumn('contestTable', 6)">
-                                            Participants</label>
+                                                data-col="6" onclick="toggleColumn('contestTable', 6)"> Participant</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="contestTable"
                                                 data-col="7" onclick="toggleColumn('contestTable', 7)"> Qs no</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="contestTable"
-                                                data-col="8" onclick="toggleColumn('contestTable', 8)"> Problem
-                                            Type</label>
+                                                data-col="8" onclick="toggleColumn('contestTable', 8)"> problem type</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="contestTable"
                                                 data-col="9" onclick="toggleColumn('contestTable', 9)"> Winner</label>
@@ -515,19 +504,9 @@
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="contestTable"
                                                 data-col="11" onclick="toggleColumn('contestTable', 11)"> Prog.</label>
-                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
-                                                type="checkbox" checked class="col-cb" data-table="contestTable"
-                                                data-col="12" onclick="toggleColumn('contestTable', 12)"> Dept</label>
-                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
-                                                type="checkbox" checked class="col-cb" data-table="contestTable"
-                                                data-col="13" onclick="toggleColumn('contestTable', 13)"> Sec</label>
-                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
-                                                type="checkbox" checked class="col-cb" data-table="contestTable"
-                                                data-col="14" onclick="toggleColumn('contestTable', 14)">
-                                            Subject</label>
                                     </div>
                                 </div>
-
+                                
                                 <div class="border-l-2 border-green-500 pl-2">
                                     <span class="text-[9px] font-black text-gray-500 block mb-1">FACULTY TABLE</span>
                                     <div class="grid grid-cols-1 gap-1">
@@ -542,8 +521,7 @@
                                                 data-col="2" onclick="toggleColumn('facultyTable', 2)"> Email</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="facultyTable"
-                                                data-col="3" onclick="toggleColumn('facultyTable', 3)">
-                                            Designation</label>
+                                                data-col="3" onclick="toggleColumn('facultyTable', 3)"> Designation</label>
                                         <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input
                                                 type="checkbox" checked class="col-cb" data-table="facultyTable"
                                                 data-col="4" onclick="toggleColumn('facultyTable', 4)"> Dept</label>
@@ -569,156 +547,146 @@
                     </div>
                 </div>
 
-             <div class="flex-1 overflow-x-auto">
-    <div id="report-content" class="report-preview-container mx-auto relative">
+                <div class="flex-1 overflow-x-auto">
+                    <div id="report-content" class="report-preview-container mx-auto relative">
+                        <div class="watermark"></div>
+                        
+                        <div class="flex justify-between items-start border-b-4 border-primary-600 pb-6 mb-8 relative z-10">
+                            <div class="flex gap-4">
+                                <div class="w-16 h-16 bg-white border border-gray-100 flex items-center justify-center rounded-lg overflow-hidden">
+                                    <img src="/campuscode-logo.jpeg" alt="CampusCode Logo" class="w-12 h-12 object-contain">
+                                </div>
+                                <div>
+                                    <h1 id="displayCollegeName" class="text-2xl font-black text-gray-800 dark:text-white uppercase tracking-tight"> ...</h1>
+                                    <p id="displayUniversityName" class="text-xs font-bold text-gray-600 dark:text-gray-400 mt-1 uppercase"></p>
+                                    <p id="displayAccreditation" class="text-[10px] text-gray-500 uppercase tracking-wide"></p>
+                                    <p class="text-sm font-bold text-primary-600 dark:text-primary-400 tracking-widest uppercase mt-2"> Master Performance Report</p>
+                                </div>
+                            </div>
+                            <div class="text-right text-xs">
+                                <p class="font-bold uppercase text-gray-400">Date: <span id="curDate" class="text-gray-800 dark:text-gray-200"></span></p>
+                                <p class="font-bold uppercase text-gray-400 mt-1">Generated By: <span id="reportAdminName" class="text-primary-600 dark:text-primary-400"></span></p>
+                            </div>
+                        </div>
 
-        <div class="watermark"></div>
+                        <section id="sec-depts" class="mb-10">
+                            <h2 class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-l-4 border-primary-500 pl-3 uppercase tracking-wide">College Overview</h2>
+                            <table class="profile-table w-full">
+                                <tr>
+                                    <td>Total Faculty Members</td>
+                                    <td id="ovFaculty">...</td>
+                                    <td>Total Students Enrolled</td>
+                                    <td id="ovStudents">...</td>
+                                </tr>
+                                <tr>
+                                    <td>Total Contests Conducted</td>
+                                    <td id="ovContests">...</td>
+                                    <td>Total Programs Covered</td>
+                                    <td id="ovPrograms">...</td>
+                                </tr>
+                                <tr>
+                                    <td>Report Generated On</td>
+                                    <td id="ovDate" colspan="3">...</td>
+                                </tr>
+                            </table>
+                        </section>
 
-        <div class="flex justify-between items-start border-b-4 border-primary-600 pb-6 mb-8 relative z-10">
-            <div class="flex gap-4">
-                <div class="flex gap-4">
-                    <div
-                        class="w-16 h-16 bg-white border border-gray-100 flex items-center justify-center rounded-lg overflow-hidden">
-                        <img src="/campuscode-logo.jpeg" alt="CampusCode Logo"
-                            class="w-12 h-12 object-contain">
-                    </div>
-                    <div>
-                        <h1 id="displayCollegeName"
-                            class="text-2xl font-black text-gray-800 dark:text-white uppercase tracking-tight">
-                            ...</h1>
-                        <p
-                            class="text-sm font-bold text-primary-600 dark:text-primary-400 tracking-widest uppercase">
-                            Master Performance Report</p>
+                        <section id="sec-students" class="mb-10 relative z-10">
+                            <h2 class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-l-4 border-primary-500 pl-3 uppercase tracking-wide">Student Directory & Performance</h2>
+                            <table class="report-table" id="studentTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Program</th>
+                                        <th>Year</th>
+                                        <th>Branch</th>
+                                        <th>Sec</th>
+                                        <th>Streak</th>
+                                        <th>Contests</th>
+                                        <th>Solved Qs</th>
+                                        <th>Col Rank</th>
+                                        <th>Global Rank</th>
+                                        <th>Level</th>
+                                        <th>Accuracy</th>
+                                        <th>Last Active</th>
+                                        <th>Won</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentTableBody">
+                                    <tr><td colspan="16" class="text-center py-4">Fetching students...</td></tr>
+                                </tbody>
+                            </table>
+                        </section>
+
+                        <section id="sec-faculty" class="mb-10 relative z-10">
+                            <h2 class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-l-4 border-orange-500 pl-3 uppercase tracking-wide">Faculty Roster</h2>
+                            <table class="report-table" id="facultyTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Designation</th>
+                                        <th>Dept</th>
+                                        <th>Contests</th>
+                                        <th>Problems</th>
+                                        <th>Rating</th>
+                                        <th>Status</th>
+                                        <th>Role</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="facultyTableBody">
+                                    <tr><td colspan="10" class="text-center py-4">Fetching faculty...</td></tr>
+                                </tbody>
+                            </table>
+                        </section>
+
+                        <section id="sec-contests" class="relative z-10">
+                            <h2 class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-l-4 border-green-500 pl-3 uppercase tracking-wide">Contest Logs</h2>
+                            <table class="report-table" id="contestTable">
+                                <thead>
+                                    <tr>
+                                        <th>C-ID</th>
+                                        <th>Title</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Dur.</th>
+                                        <th>Created By</th>
+                                        <th>Participant</th>
+                                        <th>Qs no</th>
+                                        <th>Problem Type</th>
+                                        <th>Winner</th>
+                                        <th>Scope</th>
+                                        <th>Program</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contestTableBody">
+                                    <tr><td colspan="12" class="text-center py-4">Fetching contests...</td></tr>
+                                </tbody>
+                            </table>
+                        </section>
+
+                        <footer class="mt-12 border-t-2 border-gray-200 dark:border-gray-700 pt-6 flex justify-between items-end relative z-10 no-print" style="page-break-inside: avoid;">
+                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                <p class="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide" id="footerCollegeName"></p>
+                                <p id="footerUniversityName" class="mt-1 font-medium"></p>
+                                <p id="footerAccreditation"></p>
+                                <p class="mt-3 text-[10px] uppercase font-bold text-primary-500"><i class="fas fa-lock"></i> Confidential - Internal Use Only</p>
+                            </div>
+                            <div class="text-right text-xs text-gray-500 dark:text-gray-400">
+                                <div class="flex justify-end gap-2 text-lg mb-2">
+                                    <i class="fas fa-chart-bar text-primary-500"></i>
+                                    <i class="fas fa-certificate text-primary-500"></i>
+                                </div>
+                                <p>Report ID: <span id="reportId" class="font-mono font-bold text-gray-700 dark:text-gray-300"></span></p>
+                                <p class="mt-1">Page 1 of 1</p>
+                                <p class="mt-2 text-[10px] border-t border-gray-200 dark:border-gray-700 pt-2">© CampusCode Analytics System. All rights reserved.</p>
+                            </div>
+                        </footer>
                     </div>
                 </div>
-
-            </div>
-            <div class="text-right text-xs">
-                <p class="font-bold uppercase text-gray-400">Date: <span id="curDate"></span></p>
-            </div>
-        </div>
-
-        <section id="sec-depts" class="mb-10 relative z-10">
-            <h3 class="text-md font-bold mb-4 uppercase flex items-center gap-2">
-                <span class="w-1.5 h-6 bg-primary-500 block"></span> 1. COLLEGE OVERVIEW
-            </h3>
-            <table class="profile-table" id="deptTable">
-                <tbody id="overviewTableBody">
-                    <tr>
-                        <td>Total Faculty</td>
-                        <td id="ovFaculty">...</td>
-                    </tr>
-                    <tr>
-                        <td>Total Students</td>
-                        <td id="ovStudents">...</td>
-                    </tr>
-                    <tr>
-                        <td>Total Contests</td>
-                        <td id="ovContests">...</td>
-                    </tr>
-                    <tr>
-                        <td>Total Programs</td>
-                        <td id="ovPrograms">...</td>
-                    </tr>
-                    <tr>
-                        <td>Report Date</td>
-                        <td id="ovDate">...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section id="sec-students" class="mb-10 relative z-10">
-            <h3 class="text-md font-bold mb-4 uppercase border-l-4 border-primary-500 pl-3"> 2. Students
-            </h3>
-            <table class="report-table" id="studentTable">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Program</th>
-                        <th>Year</th>
-                        <th>Branch</th>
-                        <th>Sec</th>
-                        <th>Streak</th>
-                        <th>Contests</th>
-                        <th>Solved</th>
-                        <th>Col Rank</th>
-                        <th>Global Rank</th>
-                        <th>Level</th>
-                        <th>Accuracy</th>
-                        <th>Last Active</th>
-                        <th>Won</th>
-                    </tr>
-                </thead>
-                <tbody id="studentTableBody">
-                    <tr>
-                        <td colspan="16" class="text-center py-4">Fetching students...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section id="sec-faculty" class="mb-10 relative z-10">
-            <h3 class="text-md font-bold mb-4 uppercase border-l-4 border-green-500 pl-3"> 3. Faculty
-            </h3>
-            <table class="report-table" id="facultyTable">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Designation</th>
-                        <th>Dept</th>
-                        <th>Contests</th>
-                        <th>Problems</th>
-                        <th>Rating</th>
-                        <th>Status</th>
-                        <th>Role</th>
-                    </tr>
-                </thead>
-                <tbody id="facultyTableBody">
-                    <tr>
-                        <td colspan="10" class="text-center py-4">Fetching faculty...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section id="sec-contests" class="mb-10 relative z-10">
-            <h3 class="text-md font-bold mb-4 uppercase border-l-4 border-orange-500 pl-3"> 4. Contests
-            </h3>
-            <table class="report-table" id="contestTable">
-                <thead>
-                    <tr>
-                        <th>C-ID</th>
-                        <th>Title</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Dur.</th>
-                        <th>Created By</th>
-                        <th>Participant</th>
-                        <th>Qs no</th>
-                        <th>problem type</th>
-                        <th>Winner</th>
-                        <th>Scope</th>
-                        <th>Prog.</th>
-                        <th>Dept</th>
-                        <th>Sec</th>
-                        <th>Subject</th>
-                    </tr>
-                </thead>
-                <tbody id="contestTableBody">
-                    <tr>
-                        <td colspan="15" class="text-center py-4">Fetching contests...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-    </div>
-</div>
             </main>
         </div>
     </div>
@@ -728,21 +696,20 @@
         const today = new Date().toLocaleDateString('en-US', dateOptions);
         document.getElementById('curDate').textContent = today;
         document.getElementById('ovDate').textContent = today;
+        document.getElementById('reportId').textContent = '#RPT-' + Math.floor(10000 + Math.random() * 90000);
 
         function toggleTheme() {
             document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
         }
 
-    // 5. Safely rebuild charts ONLY if the page has charts (e.g., dashboard.html)
-    if (typeof buildCharts === 'function') {
-        buildCharts();
-    }
-        
+        if (typeof buildCharts === 'function') {
+            buildCharts();
+        }
+
         function toggleProfile() {
             const overlay = document.getElementById('profileOverlay');
             const card = overlay.querySelector('div');
-
             if (overlay.classList.contains('hidden')) {
                 overlay.classList.remove('hidden');
                 setTimeout(() => {
@@ -752,74 +719,102 @@
             } else {
                 card.classList.remove('scale-100', 'opacity-100');
                 card.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    overlay.classList.add('hidden');
-                }, 300);
+                setTimeout(() => { overlay.classList.add('hidden'); }, 300);
             }
         }
 
-        function toggleNotifications() { document.getElementById('notificationDropdown').classList.toggle('hidden'); }
+        function toggleNotifications() {
+            document.getElementById('notificationDropdown').classList.toggle('hidden');
+        }
 
         async function fetchReportData() {
             try {
-                // 1. Profile Data
+                // 1. Profile Data fetching and Dynamic Mapping
                 try {
                     const profileRes = await fetch('/college/api/profile');
                     if (profileRes.ok) {
                         const { user } = await profileRes.json();
+                        
                         document.getElementById('displayCollegeName').textContent = user.collegeName || "Admin Dashboard";
+                        
+                        // Dynamic University & Accreditation Logic
+                        const university = user.university ? `University: ${user.university}` : '';
+                        const accreditation = user.accreditation ? `Accreditation: ${user.accreditation}` : '';
+                        
+                        const displayUniversityEl = document.getElementById('displayUniversityName');
+                        if (displayUniversityEl) displayUniversityEl.textContent = university;
+                        const displayAccreditationEl = document.getElementById('displayAccreditation');
+                        if (displayAccreditationEl) displayAccreditationEl.textContent = accreditation;
+                        
+                        const footerCollegeEl = document.getElementById('footerCollegeName');
+                        if (footerCollegeEl) footerCollegeEl.textContent = user.collegeName || "Institution";
+                        const footerUniversityEl = document.getElementById('footerUniversityName');
+                        if (footerUniversityEl) footerUniversityEl.textContent = university;
+                        const footerAccreditationEl = document.getElementById('footerAccreditation');
+                        if (footerAccreditationEl) footerAccreditationEl.textContent = accreditation;
 
-                        // Matches logic from help_support
-                        const name = user.fullName || 'Admin User';
-                        const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'AD';
+                        // Dynamic Salutation Logic (Mr./Mrs.) based on database gender
+                        const gender = String(user.gender || '').toLowerCase();
+                        let prefix = '';
+                        if (gender === 'male') prefix = 'Mr. ';
+                        else if (gender === 'female') prefix = 'Mrs. ';
+                        else if (gender === 'other') prefix = 'Mx. ';
 
-                        // Header Mapping
-                        document.getElementById('headerProfileName').textContent = name;
+                        const rawName = user.fullName || 'Admin User';
+                        const adminFullName = prefix + rawName;
+                        const initials = rawName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'AD';
+
+                        // Mappings
+                        const reportAdminEl = document.getElementById('reportAdminName');
+                        if (reportAdminEl) reportAdminEl.textContent = adminFullName;
+                        
+                        document.getElementById('headerProfileName').textContent = rawName;
                         document.getElementById('headerProfileInitials').textContent = initials;
-
-                        // Overlay Mapping
-                        document.getElementById('profileOverlayName').textContent = name;
+                        
+                        document.getElementById('profileOverlayName').textContent = rawName;
                         document.getElementById('profileOverlayInitials').textContent = initials;
                         document.getElementById('profileOverlayCollege').innerHTML = `<i class="fas fa-university"></i> ${user.collegeName || ""}`;
-                        const role = user.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Admin';
-                        const roleElem = document.getElementById('profileOverlayRole');
-                        if (roleElem) roleElem.textContent = `Role: ${role}`;
                     }
-                } catch (e) { console.warn(e); }
+                } catch (e) {
+                    console.warn(e);
+                }
 
-                // 2. Users Data
-                let students = [], faculty = [];
+                // Database Table APIs integration - Safely merged from /api/users
+                let students = [], faculty = [], contests = [], programs = [];
                 try {
                     const usersRes = await fetch('/college/api/users');
-                    if (usersRes.ok) {
-                        const userData = await usersRes.json();
-                        const allUsers = userData.users || userData || [];
-                        students = allUsers.filter(u => u.role === 'student');
-                        faculty = allUsers.filter(u => ['faculty', 'hod', 'admin', 'hos'].includes(u.role));
-                    } else if (usersRes.status === 401) {
-                        window.location.href = '/'; return;
+                    if (usersRes.ok) { 
+                        const usersData = await usersRes.json(); 
+                        const allUsers = usersData.data || usersData.users || []; 
+                        
+                        // Separate students and faculty properly
+                        students = allUsers.filter(u => String(u.role).toLowerCase() === 'student');
+                        faculty = allUsers.filter(u => String(u.role).toLowerCase() !== 'student' && String(u.role).toLowerCase() !== 'admin');
                     }
                 } catch (e) { console.warn(e); }
 
-                // 3. Contests Data
-                let contests = [];
                 try {
-                    const contestsRes = await fetch('/college/api/contests');
-                    if (contestsRes.ok) {
-                        const contestData = await contestsRes.json();
-                        contests = contestData.contests || contestData.data || contestData || [];
-                    }
+                    const conRes = await fetch('/college/api/contests');
+                    if (conRes.ok) { const conData = await conRes.json(); contests = conData.data || conData.contests || []; }
                 } catch (e) { console.warn(e); }
 
-                // 4. Programs Data
-                let programs = [];
                 try {
                     const progRes = await fetch('/college/api/programs');
-                    if (progRes.ok) {
-                        const progData = await progRes.json();
-                        programs = progData.data || progData || [];
-                    }
+                    if (progRes.ok) { const progData = await progRes.json(); programs = progData.data || progData || []; }
                 } catch (e) { console.warn(e); }
+
+                // --- Dynamic Global Filters Population ---
+                const uniquePrograms = [...new Set(students.map(s => s.program).filter(Boolean))].sort();
+                const programSelect = document.getElementById('programFilter');
+                if (programSelect) {
+                    programSelect.innerHTML = '<option value="all">All</option>' + uniquePrograms.map(p => `<option value="${p}">${p}</option>`).join('');
+                }
+
+                const uniqueYears = [...new Set(students.map(s => s.year).filter(Boolean))].sort();
+                const yearSelect = document.getElementById('yearFilter');
+                if (yearSelect) {
+                    yearSelect.innerHTML = '<option value="all">All</option>' + uniqueYears.map(y => `<option value="${y}">${y}</option>`).join('');
+                }
 
                 // Update Overview Widgets
                 document.getElementById('ovFaculty').textContent = `${faculty.length}`;
@@ -841,7 +836,7 @@
                     studentBody.innerHTML = `<tr><td colspan="16" class="text-center py-4">No students found.</td></tr>`;
                 } else {
                     studentBody.innerHTML = students.map((s) => `
-                        <tr class="data-row" data-dept="${s.department || s.branch || ''}" data-year="${s.year || ''}">
+                        <tr class="data-row" data-program="${s.program || ''}" data-year="${s.year || ''}">
                             <td>${s.id || s._id || ''}</td>
                             <td class="font-semibold">${s.fullName || ''}</td>
                             <td>${s.email || ''}</td>
@@ -868,7 +863,7 @@
                     facultyBody.innerHTML = `<tr><td colspan="10" class="text-center py-4">No faculty found.</td></tr>`;
                 } else {
                     facultyBody.innerHTML = faculty.map((f) => `
-                        <tr class="data-row" data-dept="${f.department || f.branch || ''}">
+                        <tr class="data-row" data-program="${f.department || f.branch || ''}" data-year="">
                             <td>${f.id || f._id || ''}</td>
                             <td class="font-semibold">${f.fullName || ''}</td>
                             <td>${f.email || ''}</td>
@@ -877,8 +872,8 @@
                             <td>${f.contests_created || 0}</td>
                             <td>${f.problems_created || 0}</td>
                             <td>${f.rating || '-'}</td>
-                            <td>${f.status || ''}</td>
-                            <td class="uppercase text-[10px] font-bold text-primary-600">${f.role || ''}</td>
+                            <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${f.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-700'}">${f.status || 'Active'}</span></td>
+                            <td class="capitalize">${f.role || 'faculty'}</td>
                         </tr>
                     `).join('');
                 }
@@ -886,107 +881,101 @@
                 // --- 3. Map Contests ---
                 const contestBody = document.getElementById('contestTableBody');
                 if (contests.length === 0) {
-                    contestBody.innerHTML = `<tr><td colspan="15" class="text-center py-4">No contests found.</td></tr>`;
+                    contestBody.innerHTML = `<tr><td colspan="12" class="text-center py-4">No contests found.</td></tr>`;
                 } else {
                     contestBody.innerHTML = contests.map((c) => {
-                        let creatorOutput = "";
-                        if (c.createdBy && typeof c.createdBy === 'object') {
-                            const name = c.createdBy.fullName || c.createdBy.name || 'Unknown';
-                            const role = c.createdBy.role ? c.createdBy.role.toUpperCase() : 'USER';
-                            creatorOutput = `${name} (${role})`;
-                        } else {
-                            creatorOutput = c.createdBy || c.creatorName || '';
-                        }
-
+                        let creatorOutput = c.createdBy_name || 'Admin';
                         return `
-                        <tr class="data-row" data-dept="${c.dept || c.department || ''}">
+                        <tr class="data-row" data-program="${c.program || ''}" data-year="">
                             <td>${c.id || c._id || ''}</td>
                             <td class="font-semibold">${c.title || ''}</td>
-                            <td>${c.deadline || c.date ? new Date(c.deadline || c.date).toLocaleDateString() : ''}</td>
-                            <td>${c.time || '-'}</td>
+                            <td>${c.date || c.startDate || ''}</td>
+                            <td>${c.time || c.startTime || '-'}</td>
                             <td>${c.duration || '-'}</td>
-                            <td class="font-medium text-gray-700 dark:text-gray-200">${creatorOutput}</td>
+                            <td class="text-primary-600 dark:text-gray-200">${creatorOutput}</td>
                             <td>${c.participants || c.participant || 0}</td>
                             <td>${c.qsNo || c.questionsCount || 0}</td>
                             <td>${c.problemType || '-'}</td>
                             <td>${c.winner || '-'}</td>
                             <td>${c.scope || '-'}</td>
                             <td>${c.program || '-'}</td>
-                            <td>${c.dept || c.department || '-'}</td>
-                            <td>${c.sec || c.section || '-'}</td>
-                            <td>${c.subject || '-'}</td>
                         </tr>
                     `}).join('');
                 }
-
             } catch (error) {
                 console.error("Failed to initialize report data:", error);
             }
         }
-
+        
         window.addEventListener('DOMContentLoaded', fetchReportData);
 
         function logoutAdmin() {
             localStorage.removeItem("adminLogin");
             fetch('/auth/logout', { method: 'POST' }).finally(() => { window.location.href = "/"; });
         }
-        document.getElementById("logoutBtn").addEventListener("click", logoutAdmin);
+        if(document.getElementById("logoutBtn")) {
+             document.getElementById("logoutBtn").addEventListener("click", logoutAdmin);
+        }
 
         // Filters and Table Logic
-        function toggleSection(sectionId) { document.getElementById(sectionId)?.classList.toggle('section-hidden'); }
+        function toggleSection(sectionId) { 
+            document.getElementById(sectionId)?.classList.toggle('section-hidden'); 
+        }
 
         function toggleColumn(tableId, colIndex) {
             const rows = document.getElementById(tableId)?.querySelectorAll('tr');
-            if (rows) rows.forEach(row => { if (row.children.length > colIndex) row.children[colIndex].classList.toggle('col-hidden'); });
+            if (rows) rows.forEach(row => {
+                if (row.children.length > colIndex) row.children[colIndex].classList.toggle('col-hidden');
+            });
         }
 
         function applyGlobalFilters() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const dept = document.getElementById('deptFilter').value.toLowerCase();
+            const searchInputEl = document.getElementById('searchInput');
+            const search = searchInputEl ? searchInputEl.value.toLowerCase() : '';
+            const program = document.getElementById('programFilter').value.toLowerCase();
             const year = document.getElementById('yearFilter').value.toLowerCase();
-
+            
             document.querySelectorAll('.data-row').forEach(row => {
-                const text = row.textContent.toLowerCase();
-                const rDept = (row.getAttribute('data-dept') || '').toLowerCase();
-                const rYear = (row.getAttribute('data-year') || '').toLowerCase();
-
-                let match = text.includes(search);
-                if (dept !== 'all' && !rDept.includes(dept)) match = false;
-                if (year !== 'all') {
-                    const searchYr = year.replace('yr', '').trim();
-                    if (!rYear.includes(searchYr)) match = false;
-                }
-                row.style.display = match ? '' : 'none';
+                const text = row.innerText.toLowerCase();
+                const rowProgram = (row.dataset.program || '').toLowerCase();
+                const rowYear = (row.dataset.year || '').toLowerCase();
+                
+                const matchSearch = text.includes(search);
+                const matchProgram = program === 'all' || rowProgram === program;
+                const matchYear = year === 'all' || rowYear === year;
+                
+                if (matchSearch && matchProgram && matchYear) row.style.display = '';
+                else row.style.display = 'none';
             });
         }
 
         function resetAllFilters() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('deptFilter').value = 'all';
+            const searchInputEl = document.getElementById('searchInput');
+            if(searchInputEl) searchInputEl.value = '';
+            document.getElementById('programFilter').value = 'all';
             document.getElementById('yearFilter').value = 'all';
-            document.querySelectorAll('section').forEach(s => s.classList.remove('section-hidden'));
-            document.querySelectorAll('input[type="checkbox"][id^="check-sec"]').forEach(cb => cb.checked = true);
-            document.querySelectorAll('.col-hidden').forEach(col => col.classList.remove('col-hidden'));
-            document.querySelectorAll('.col-cb').forEach(cb => cb.checked = true);
             applyGlobalFilters();
         }
 
-        // Export Tools
         function directDownloadPDF() {
             const element = document.getElementById('report-content');
-            html2pdf().set({
-                margin: 0, filename: 'CampusCode_Master_Report.pdf', image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-            }).from(element).save();
+            const opt = {
+                margin: 0,
+                filename: 'CampusCode_Report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().set(opt).from(element).save();
         }
 
         function downloadExcel() {
             try {
                 const wb = XLSX.utils.book_new();
-                const addTable = (tableId, sheetName) => {
-                    const tbl = document.getElementById(tableId);
-                    if (tbl && !document.getElementById('sec-' + sheetName.toLowerCase().replace(' ', '')).classList.contains('section-hidden')) {
-                        const clone = tbl.cloneNode(true);
+                const addTable = (id, sheetName) => {
+                    const table = document.getElementById(id);
+                    if (table) {
+                        const clone = table.cloneNode(true);
                         clone.querySelectorAll('.col-hidden').forEach(el => el.remove());
                         XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(clone), sheetName);
                     }
@@ -997,27 +986,23 @@
                 XLSX.writeFile(wb, 'CampusCode_Report.xlsx');
             } catch (err) { alert("Failed to export Excel. Please ensure SheetJS is loaded."); }
         }
-        // notification
+        
+        // Notifications Logic
         document.addEventListener('DOMContentLoaded', () => {
-        const notificationBtn = document.getElementById('notificationBtn');
-        const notifDropdown = document.getElementById('notifDropdown');
-
-        if (notificationBtn && notifDropdown) {
-            // Toggle dropdown when clicking the bell icon
-            notificationBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent click from instantly triggering the document click listener
-                notifDropdown.classList.toggle('hidden');
-            });
-
-            // Close the dropdown if the user clicks anywhere else on the screen
-            document.addEventListener('click', (e) => {
-                if (!notifDropdown.contains(e.target) && !notificationBtn.contains(e.target)) {
-                    notifDropdown.classList.add('hidden');
-                }
-            });
-        }
-    });
+            const notificationBtn = document.getElementById('notificationBtn');
+            const notifDropdown = document.getElementById('notifDropdown');
+            if (notificationBtn && notifDropdown) {
+                notificationBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    notifDropdown.classList.toggle('hidden');
+                });
+                document.addEventListener('click', (e) => {
+                    if (!notifDropdown.contains(e.target) && !notificationBtn.contains(e.target)) {
+                        notifDropdown.classList.add('hidden');
+                    }
+                });
+            }
+        });
     </script>
 </body>
-
 </html>
