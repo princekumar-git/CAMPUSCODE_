@@ -187,9 +187,49 @@ module.exports = (db) => {
                     SELECT
                         (SELECT COUNT(*) FROM programs p WHERE LOWER(TRIM(COALESCE(p.collegeName, ''))) = LOWER(TRIM(?))) AS programCount,
                         (SELECT COUNT(*) FROM branches b WHERE LOWER(TRIM(COALESCE(b.collegeName, ''))) = LOWER(TRIM(?))) AS branchCount,
+                        (SELECT COUNT(*) FROM sections sec WHERE LOWER(TRIM(COALESCE(sec.collegeName, ''))) = LOWER(TRIM(?))) AS sectionCount,
+                        (SELECT COUNT(*) FROM subjects sub WHERE LOWER(TRIM(COALESCE(sub.collegeName, ''))) = LOWER(TRIM(?))) AS subjectCount,
                         (SELECT COUNT(*) FROM student s WHERE LOWER(TRIM(COALESCE(s.collegeName, ''))) = LOWER(TRIM(?)) AND LOWER(COALESCE(s.role, '')) = 'student') AS studentCount,
                         (SELECT COUNT(*) FROM faculty f WHERE LOWER(TRIM(COALESCE(f.collegeName, ''))) = LOWER(TRIM(?)) AND LOWER(COALESCE(f.role, '')) = 'faculty') AS facultyCount
-                `, [collegeName, collegeName, collegeName, collegeName]);
+                `, [collegeName, collegeName, collegeName, collegeName, collegeName, collegeName]);
+
+                const [programs, branches, sections, subjects] = await Promise.all([
+                    dbAll(`SELECT id, name FROM programs WHERE LOWER(TRIM(COALESCE(collegeName, ''))) = LOWER(TRIM(?)) ORDER BY name ASC`, [collegeName]),
+                    dbAll(`SELECT id, name, program_id FROM branches WHERE LOWER(TRIM(COALESCE(collegeName, ''))) = LOWER(TRIM(?)) ORDER BY name ASC`, [collegeName]),
+                    dbAll(`SELECT id, name, branch_id FROM sections WHERE LOWER(TRIM(COALESCE(collegeName, ''))) = LOWER(TRIM(?)) ORDER BY name ASC`, [collegeName]),
+                    dbAll(`SELECT id, name, branch_id, section_id FROM subjects WHERE LOWER(TRIM(COALESCE(collegeName, ''))) = LOWER(TRIM(?)) ORDER BY name ASC`, [collegeName]),
+                ]);
+
+                const allUsers = await dbAll(`
+                    SELECT id, fullName, email, program, branch, section, subject, LOWER(COALESCE(role, '')) AS role
+                    FROM ${accountTable}
+                    WHERE LOWER(TRIM(COALESCE(collegeName, ''))) = LOWER(TRIM(?))
+                      AND LOWER(COALESCE(role, '')) IN ('student', 'faculty', 'hod', 'hos', 'admin')
+                    ORDER BY fullName ASC
+                `, [collegeName]);
+                const studentUsers = allUsers
+                    .filter((u) => u.role === 'student')
+                    .map((u) => ({ ...u, userType: 'student' }));
+                const facultyUsers = allUsers
+                    .filter((u) => u.role !== 'student')
+                    .map((u) => ({ ...u, userType: 'faculty' }));
+
+                const problemList = await dbAll(`
+                    SELECT pr.id, pr.title
+                    FROM problems pr
+                    LEFT JOIN ${accountTable} u ON u.id = COALESCE(pr.created_by, pr.faculty_id)
+                    WHERE LOWER(TRIM(COALESCE(u.collegeName, ''))) = LOWER(TRIM(?))
+                    ORDER BY pr.id DESC
+                `, [collegeName]);
+
+                const contestList = await dbAll(`
+                    SELECT c.id, c.title
+                    FROM contests c
+                    LEFT JOIN ${accountTable} u ON u.id = COALESCE(c.createdBy, c.created_by)
+                    WHERE LOWER(TRIM(COALESCE(c.collegeName, ''))) = LOWER(TRIM(?))
+                       OR LOWER(TRIM(COALESCE(u.collegeName, ''))) = LOWER(TRIM(?))
+                    ORDER BY c.id DESC
+                `, [collegeName, collegeName]);
 
                 response.push({
                     id: college.id,
@@ -203,6 +243,8 @@ module.exports = (db) => {
                         ...(metrics[0] || {
                             programCount: 0,
                             branchCount: 0,
+                            sectionCount: 0,
+                            subjectCount: 0,
                             studentCount: 0,
                             facultyCount: 0
                         }),
@@ -211,9 +253,21 @@ module.exports = (db) => {
                     } || {
                         programCount: 0,
                         branchCount: 0,
+                        sectionCount: 0,
+                        subjectCount: 0,
                         studentCount: 0,
                         facultyCount: 0,
-                    }
+                    },
+                    programs,
+                    branches,
+                    sections,
+                    subjects,
+                    users: {
+                        students: studentUsers,
+                        faculty: facultyUsers
+                    },
+                    problems: problemList,
+                    contests: contestList
                 });
             }
 

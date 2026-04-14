@@ -89,11 +89,40 @@
                         <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Faculty</p>
                         <p id="metric-faculty" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">0</p>
                     </div>
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900/30">
+                        <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Sections</p>
+                        <p id="metric-sections" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">0</p>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900/30">
+                        <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Subjects</p>
+                        <p id="metric-subjects" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">0</p>
+                    </div>
                 </div>
             </div>
 
             <div id="tab-academics" class="tab-panel p-4 md:p-6 hidden">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
+                    <div>
+                        <label class="block text-xs uppercase font-semibold mb-1">Program</label>
+                        <select id="academic-program-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase font-semibold mb-1">Branch</label>
+                        <select id="academic-branch-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase font-semibold mb-1">Section</label>
+                        <select id="academic-section-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase font-semibold mb-1">Subject</label>
+                        <select id="academic-subject-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
+                    </div>
+                    <div class="flex items-end">
+                        <button id="clear-academic-filters" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm font-semibold">Clear</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
                     <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                         <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Program Count</p>
                         <p id="academic-programs" class="text-3xl font-bold text-primary-500">0</p>
@@ -102,10 +131,65 @@
                         <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Branch Count</p>
                         <p id="academic-branches" class="text-3xl font-bold text-primary-500">0</p>
                     </div>
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Section Count</p>
+                        <p id="academic-sections" class="text-3xl font-bold text-primary-500">0</p>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Subject Count</p>
+                        <p id="academic-subjects" class="text-3xl font-bold text-primary-500">0</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                        <p class="text-sm font-semibold mb-2">Programs</p>
+                        <ul id="list-programs" class="text-sm space-y-1 max-h-44 overflow-auto"></ul>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                        <p class="text-sm font-semibold mb-2">Branches</p>
+                        <ul id="list-branches" class="text-sm space-y-1 max-h-44 overflow-auto"></ul>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                        <p class="text-sm font-semibold mb-2">Sections</p>
+                        <ul id="list-sections" class="text-sm space-y-1 max-h-44 overflow-auto"></ul>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                        <p class="text-sm font-semibold mb-2">Subjects</p>
+                        <ul id="list-subjects" class="text-sm space-y-1 max-h-44 overflow-auto"></ul>
+                    </div>
                 </div>
             </div>
 
             <div id="tab-users" class="tab-panel p-4 md:p-6 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-4">
+                    <div>
+                        <label class="block text-xs uppercase font-semibold mb-1">User Type</label>
+                        <select id="user-type-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
+                            <option value="all">All</option>
+                            <option value="student">Student</option>
+                            <option value="faculty">Faculty</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase font-semibold mb-1">Program</label>
+                        <select id="user-program-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase font-semibold mb-1">Branch</label>
+                        <select id="user-branch-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase font-semibold mb-1">Section</label>
+                        <select id="user-section-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase font-semibold mb-1">Subject</label>
+                        <select id="user-subject-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
+                    </div>
+                    <div class="flex items-end">
+                        <button id="clear-user-filters" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm font-semibold">Clear</button>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                         <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Student Count</p>
@@ -120,6 +204,10 @@
                     <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">College Admin</p>
                     <div id="college-admin-list" class="space-y-2 text-sm text-gray-700 dark:text-gray-300"></div>
                 </div>
+                <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 mt-4">
+                    <p class="text-sm font-semibold mb-2">Users List</p>
+                    <div id="users-list" class="space-y-2 max-h-72 overflow-auto"></div>
+                </div>
             </div>
 
             <div id="tab-content" class="tab-panel p-4 md:p-6 hidden">
@@ -131,6 +219,16 @@
                     <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                         <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Contests Created</p>
                         <p id="content-contests" class="text-3xl font-bold text-primary-500">0</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                        <p class="text-sm font-semibold mb-2">Problems List</p>
+                        <ul id="content-problems-list" class="text-sm space-y-1 max-h-64 overflow-auto"></ul>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                        <p class="text-sm font-semibold mb-2">Contests List</p>
+                        <ul id="content-contests-list" class="text-sm space-y-1 max-h-64 overflow-auto"></ul>
                     </div>
                 </div>
             </div>
@@ -202,12 +300,26 @@
             document.getElementById('metric-branches').textContent = metrics.branchCount || 0;
             document.getElementById('metric-students').textContent = metrics.studentCount || 0;
             document.getElementById('metric-faculty').textContent = metrics.facultyCount || 0;
+            document.getElementById('metric-sections').textContent = metrics.sectionCount || 0;
+            document.getElementById('metric-subjects').textContent = metrics.subjectCount || 0;
             document.getElementById('academic-programs').textContent = metrics.programCount || 0;
             document.getElementById('academic-branches').textContent = metrics.branchCount || 0;
+            document.getElementById('academic-sections').textContent = metrics.sectionCount || 0;
+            document.getElementById('academic-subjects').textContent = metrics.subjectCount || 0;
             document.getElementById('users-students').textContent = metrics.studentCount || 0;
             document.getElementById('users-faculty').textContent = metrics.facultyCount || 0;
             document.getElementById('content-problems').textContent = metrics.problemCount || 0;
             document.getElementById('content-contests').textContent = metrics.contestCount || 0;
+            renderSimpleList('list-programs', college.programs || []);
+            renderSimpleList('list-branches', college.branches || []);
+            renderSimpleList('list-sections', college.sections || []);
+            renderSimpleList('list-subjects', college.subjects || []);
+            populateAcademicFilters(college);
+            renderAcademicLists(college);
+            renderSimpleList('content-problems-list', college.problems || []);
+            renderSimpleList('content-contests-list', college.contests || []);
+            populateUserFilters(college);
+            renderUsersList(college);
 
             const adminList = document.getElementById('college-admin-list');
             if (!college.admins || !college.admins.length) {
@@ -222,6 +334,230 @@
             }
 
             renderCollegeStrip();
+        }
+
+        function renderSimpleList(id, items) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (!items.length) {
+                el.innerHTML = '<li class="text-gray-500 dark:text-gray-400">-</li>';
+                return;
+            }
+            el.innerHTML = items.map((it) => `<li class="px-2 py-1 rounded bg-gray-50 dark:bg-gray-900/30">${it.name}</li>`).join('');
+        }
+
+        function populateSelectOptions(selectEl, options, allLabel, keepValue) {
+            if (!selectEl) return 'all';
+            selectEl.innerHTML = `<option value="all">${allLabel}</option>` +
+                options.map((o) => `<option value="${o.id}">${o.name}</option>`).join('');
+            const hasKeep = keepValue && options.some((o) => String(o.id) === String(keepValue));
+            selectEl.value = hasKeep ? String(keepValue) : 'all';
+            return selectEl.value;
+        }
+
+        function getAcademicScope(college) {
+            const pSel = document.getElementById('academic-program-filter');
+            const bSel = document.getElementById('academic-branch-filter');
+            const sSel = document.getElementById('academic-section-filter');
+            const subSel = document.getElementById('academic-subject-filter');
+            const programId = pSel?.value || 'all';
+            const branchId = bSel?.value || 'all';
+            const sectionId = sSel?.value || 'all';
+            const subjectId = subSel?.value || 'all';
+
+            const allPrograms = college.programs || [];
+            const allBranches = college.branches || [];
+            const allSections = college.sections || [];
+            const allSubjects = college.subjects || [];
+
+            const scopedBranchesByProgram = programId === 'all'
+                ? allBranches
+                : allBranches.filter((b) => {
+                    const ref = b.program_id ?? b.programId ?? b.program ?? '';
+                    if (ref === '' || ref === null || typeof ref === 'undefined') return true;
+                    return String(ref) === String(programId);
+                });
+            const effectiveBranchId = branchId !== 'all' && scopedBranchesByProgram.some((b) => String(b.id) === String(branchId))
+                ? branchId
+                : 'all';
+
+            const scopedSectionsByBranch = effectiveBranchId === 'all'
+                ? allSections.filter((s) => {
+                    const ref = s.branch_id ?? s.branchId ?? '';
+                    if (ref === '' || ref === null || typeof ref === 'undefined') return true;
+                    return scopedBranchesByProgram.some((b) => String(b.id) === String(ref));
+                })
+                : allSections.filter((s) => {
+                    const ref = s.branch_id ?? s.branchId ?? '';
+                    if (ref === '' || ref === null || typeof ref === 'undefined') return true;
+                    return String(ref) === String(effectiveBranchId);
+                });
+            const effectiveSectionId = sectionId !== 'all' && scopedSectionsByBranch.some((s) => String(s.id) === String(sectionId))
+                ? sectionId
+                : 'all';
+
+            const scopedSubjects = allSubjects.filter((subj) => {
+                const sectionRef = subj.section_id ?? subj.sectionId ?? '';
+                const branchRef = subj.branch_id ?? subj.branchId ?? '';
+                if (effectiveSectionId !== 'all') {
+                    if (sectionRef === '' || sectionRef === null || typeof sectionRef === 'undefined') return true;
+                    return String(sectionRef) === String(effectiveSectionId);
+                }
+                if (effectiveBranchId !== 'all') {
+                    if (branchRef === '' || branchRef === null || typeof branchRef === 'undefined') return true;
+                    return String(branchRef) === String(effectiveBranchId);
+                }
+                if (programId !== 'all') {
+                    if (branchRef === '' || branchRef === null || typeof branchRef === 'undefined') return true;
+                    return scopedBranchesByProgram.some((b) => String(b.id) === String(branchRef));
+                }
+                return true;
+            });
+            const effectiveSubjectId = subjectId !== 'all' && scopedSubjects.some((x) => String(x.id) === String(subjectId))
+                ? subjectId
+                : 'all';
+
+            return {
+                allPrograms,
+                scopedBranchesByProgram,
+                scopedSectionsByBranch,
+                scopedSubjects,
+                effectiveProgramId: programId,
+                effectiveBranchId,
+                effectiveSectionId,
+                effectiveSubjectId
+            };
+        }
+
+        function populateAcademicFilters(college) {
+            const programSel = document.getElementById('academic-program-filter');
+            const branchSel = document.getElementById('academic-branch-filter');
+            const sectionSel = document.getElementById('academic-section-filter');
+            const subjectSel = document.getElementById('academic-subject-filter');
+            if (!programSel || !branchSel || !sectionSel || !subjectSel) return;
+            const keepProgram = programSel.value || 'all';
+            const keepBranch = branchSel.value || 'all';
+            const keepSection = sectionSel.value || 'all';
+            const keepSubject = subjectSel.value || 'all';
+
+            const effectiveProgramId = populateSelectOptions(programSel, college.programs || [], 'All Programs', keepProgram);
+            const branches = effectiveProgramId === 'all'
+                ? (college.branches || [])
+                : (college.branches || []).filter((b) => {
+                    const ref = b.program_id ?? b.programId ?? b.program ?? '';
+                    if (ref === '' || ref === null || typeof ref === 'undefined') return true;
+                    return String(ref) === String(effectiveProgramId);
+                });
+            const effectiveBranchId = populateSelectOptions(branchSel, branches, 'All Branches', keepBranch);
+
+            const sections = effectiveBranchId === 'all'
+                ? (college.sections || []).filter((s) => {
+                    const ref = s.branch_id ?? s.branchId ?? '';
+                    if (ref === '' || ref === null || typeof ref === 'undefined') return true;
+                    return branches.some((b) => String(b.id) === String(ref));
+                })
+                : (college.sections || []).filter((s) => {
+                    const ref = s.branch_id ?? s.branchId ?? '';
+                    if (ref === '' || ref === null || typeof ref === 'undefined') return true;
+                    return String(ref) === String(effectiveBranchId);
+                });
+            const effectiveSectionId = populateSelectOptions(sectionSel, sections, 'All Sections', keepSection);
+
+            const subjects = (college.subjects || []).filter((subj) => {
+                const sectionRef = subj.section_id ?? subj.sectionId ?? '';
+                const branchRef = subj.branch_id ?? subj.branchId ?? '';
+                if (effectiveSectionId !== 'all') {
+                    if (sectionRef === '' || sectionRef === null || typeof sectionRef === 'undefined') return true;
+                    return String(sectionRef) === String(effectiveSectionId);
+                }
+                if (effectiveBranchId !== 'all') {
+                    if (branchRef === '' || branchRef === null || typeof branchRef === 'undefined') return true;
+                    return String(branchRef) === String(effectiveBranchId);
+                }
+                if (effectiveProgramId !== 'all') {
+                    if (branchRef === '' || branchRef === null || typeof branchRef === 'undefined') return true;
+                    return branches.some((b) => String(b.id) === String(branchRef));
+                }
+                return true;
+            });
+            populateSelectOptions(subjectSel, subjects, 'All Subjects', keepSubject);
+        }
+
+        function renderAcademicLists(college) {
+            const {
+                allPrograms,
+                scopedBranchesByProgram,
+                scopedSectionsByBranch,
+                scopedSubjects,
+                effectiveProgramId,
+                effectiveBranchId,
+                effectiveSectionId,
+                effectiveSubjectId
+            } = getAcademicScope(college);
+
+            const programs = effectiveProgramId === 'all'
+                ? allPrograms
+                : allPrograms.filter((p) => String(p.id) === String(effectiveProgramId));
+            const branches = effectiveBranchId === 'all'
+                ? scopedBranchesByProgram
+                : scopedBranchesByProgram.filter((b) => String(b.id) === String(effectiveBranchId));
+            const sections = effectiveSectionId === 'all'
+                ? scopedSectionsByBranch
+                : scopedSectionsByBranch.filter((s) => String(s.id) === String(effectiveSectionId));
+            const subjects = effectiveSubjectId === 'all'
+                ? scopedSubjects
+                : scopedSubjects.filter((sub) => String(sub.id) === String(effectiveSubjectId));
+
+            renderSimpleList('list-programs', programs);
+            renderSimpleList('list-branches', branches);
+            renderSimpleList('list-sections', sections);
+            renderSimpleList('list-subjects', subjects);
+        }
+
+        function populateUserFilters(college) {
+            const programSel = document.getElementById('user-program-filter');
+            const branchSel = document.getElementById('user-branch-filter');
+            const sectionSel = document.getElementById('user-section-filter');
+            const subjectSel = document.getElementById('user-subject-filter');
+            const programs = ['all', ...(college.programs || []).map((s) => s.name)];
+            const branches = ['all', ...(college.branches || []).map((s) => s.name)];
+            const sections = ['all', ...(college.sections || []).map((s) => s.name)];
+            const subjects = ['all', ...(college.subjects || []).map((s) => s.name)];
+            programSel.innerHTML = programs.map((s) => `<option value="${s}">${s === 'all' ? 'All Programs' : s}</option>`).join('');
+            branchSel.innerHTML = branches.map((s) => `<option value="${s}">${s === 'all' ? 'All Branches' : s}</option>`).join('');
+            sectionSel.innerHTML = sections.map((s) => `<option value="${s}">${s === 'all' ? 'All Sections' : s}</option>`).join('');
+            subjectSel.innerHTML = subjects.map((s) => `<option value="${s}">${s === 'all' ? 'All Subjects' : s}</option>`).join('');
+        }
+
+        function renderUsersList(college) {
+            const usersBox = document.getElementById('users-list');
+            if (!usersBox) return;
+            const typeFilter = document.getElementById('user-type-filter').value;
+            const programFilter = document.getElementById('user-program-filter').value;
+            const branchFilter = document.getElementById('user-branch-filter').value;
+            const sectionFilter = document.getElementById('user-section-filter').value;
+            const subjectFilter = document.getElementById('user-subject-filter').value;
+            let users = [...(college.users?.students || []), ...(college.users?.faculty || [])];
+            if (typeFilter !== 'all') users = users.filter((u) => u.userType === typeFilter);
+            if (programFilter !== 'all') users = users.filter((u) => (u.program || '') === programFilter);
+            if (branchFilter !== 'all') users = users.filter((u) => (u.branch || '') === branchFilter);
+            if (sectionFilter !== 'all') users = users.filter((u) => (u.section || '') === sectionFilter);
+            if (subjectFilter !== 'all') users = users.filter((u) => (u.subject || '') === subjectFilter);
+            if (!users.length) {
+                usersBox.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No users found for selected filters.</p>';
+                return;
+            }
+            usersBox.innerHTML = users.map((u) => `
+                <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm">
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="font-medium">${u.fullName || '-'}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full ${u.userType === 'student' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}">${u.userType}</span>
+                    </div>
+                    <div class="text-xs mt-1 text-gray-500 dark:text-gray-400">${u.email || '-'}</div>
+                    <div class="text-xs mt-1">Program: ${u.program || '-'} | Branch: ${u.branch || '-'}</div>
+                    <div class="text-xs mt-1">Section: ${u.section || '-'} | Subject: ${u.subject || '-'}</div>
+                </div>
+            `).join('');
         }
 
         async function loadCollegeManagement() {
@@ -281,6 +617,47 @@
             document.querySelectorAll('.tab-btn').forEach((btn) => {
                 btn.addEventListener('click', () => setTab(btn.dataset.tab));
             });
+            ['user-type-filter', 'user-program-filter', 'user-branch-filter', 'user-section-filter', 'user-subject-filter'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', () => {
+                        const college = colleges.find((c) => Number(c.id) === Number(selectedCollegeId));
+                        if (college) renderUsersList(college);
+                    });
+                }
+            });
+            ['academic-program-filter', 'academic-branch-filter', 'academic-section-filter', 'academic-subject-filter'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', () => {
+                        const college = colleges.find((c) => Number(c.id) === Number(selectedCollegeId));
+                        if (college) renderAcademicLists(college);
+                    });
+                }
+            });
+            const clearBtn = document.getElementById('clear-user-filters');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    document.getElementById('user-type-filter').value = 'all';
+                    document.getElementById('user-program-filter').value = 'all';
+                    document.getElementById('user-branch-filter').value = 'all';
+                    document.getElementById('user-section-filter').value = 'all';
+                    document.getElementById('user-subject-filter').value = 'all';
+                    const college = colleges.find((c) => Number(c.id) === Number(selectedCollegeId));
+                    if (college) renderUsersList(college);
+                });
+            }
+            const clearAcadBtn = document.getElementById('clear-academic-filters');
+            if (clearAcadBtn) {
+                clearAcadBtn.addEventListener('click', () => {
+                    document.getElementById('academic-program-filter').value = 'all';
+                    document.getElementById('academic-branch-filter').value = 'all';
+                    document.getElementById('academic-section-filter').value = 'all';
+                    document.getElementById('academic-subject-filter').value = 'all';
+                    const college = colleges.find((c) => Number(c.id) === Number(selectedCollegeId));
+                    if (college) renderAcademicLists(college);
+                });
+            }
             setTab('overview');
             loadCollegeManagement();
         });
