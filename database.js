@@ -559,11 +559,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
             db.run(`CREATE TABLE IF NOT EXISTS colleges (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 name TEXT UNIQUE NOT NULL,
+                university TEXT DEFAULT '',
+                accreditation TEXT DEFAULT '',
                 status TEXT DEFAULT 'active', 
                 createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
             )`, (err) => {
                 if (err) console.error("Error creating colleges table:", err.message);
             });
+            db.run(`ALTER TABLE colleges ADD COLUMN university TEXT DEFAULT ''`, () => {});
+            db.run(`ALTER TABLE colleges ADD COLUMN accreditation TEXT DEFAULT ''`, () => {});
 
             // ==========================================
             // 5. PROBLEMS TABLE

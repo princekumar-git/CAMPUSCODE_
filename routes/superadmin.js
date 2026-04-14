@@ -89,14 +89,32 @@ module.exports = (db) => {
 
     // Add a new college
     router.post('/api/colleges', requireRole('superadmin'), (req, res) => {
-        const { name } = req.body;
-        db.run(`INSERT INTO colleges (name) VALUES (?)`, [name], function(err) {
+        const { name, university, accreditation } = req.body;
+        db.run(`INSERT INTO colleges (name, university, accreditation) VALUES (?, ?, ?)`, [name, university || '', accreditation || ''], function(err) {
             if (err) {
                 if (err.message.includes('UNIQUE')) return res.status(400).json({ success: false, error: 'College already exists' });
                 return res.status(500).json({ success: false, error: err.message });
             }
             res.json({ success: true, id: this.lastID, message: 'College added successfully' });
         });
+    });
+
+    router.put('/api/colleges/:id/metadata', requireRole('superadmin'), (req, res) => {
+        const collegeId = Number(req.params.id);
+        if (!Number.isInteger(collegeId) || collegeId <= 0) {
+            return res.status(400).json({ success: false, error: 'Invalid college id' });
+        }
+        const university = String(req.body.university || '').trim();
+        const accreditation = String(req.body.accreditation || '').trim();
+        db.run(
+            `UPDATE colleges SET university = ?, accreditation = ? WHERE id = ?`,
+            [university, accreditation, collegeId],
+            function(err) {
+                if (err) return res.status(500).json({ success: false, error: err.message });
+                if (!this.changes) return res.status(404).json({ success: false, error: 'College not found' });
+                res.json({ success: true, message: 'College metadata updated' });
+            }
+        );
     });
 
     // Delete a college
@@ -116,7 +134,7 @@ module.exports = (db) => {
             const hasProblemFacultyId = problemCols.has('faculty_id');
             const hasContestCollegeName = contestCols.has('collegeName');
             const colleges = await dbAll(`
-                SELECT id, name, COALESCE(status, 'active') AS status
+                SELECT id, name, COALESCE(university, '') AS university, COALESCE(accreditation, '') AS accreditation, COALESCE(status, 'active') AS status
                 FROM colleges
                 ORDER BY id DESC
             `);
@@ -176,6 +194,8 @@ module.exports = (db) => {
                 response.push({
                     id: college.id,
                     name: collegeName,
+                    university: college.university || '',
+                    accreditation: college.accreditation || '',
                     status: college.status || 'active',
                     adminNames: admins.map((a) => a.fullName),
                     admins,
