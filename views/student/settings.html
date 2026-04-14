@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -85,6 +85,7 @@
         .nav-item:hover i { transform: scale(1.1); }
         .nav-item span { font-size: 0.875rem; font-weight: 500; }
     </style>
+    <link rel="stylesheet" href="/css/role-dark-fixes.css">
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
@@ -465,7 +466,7 @@
                             collegeStatus.className = 'mt-2 text-sm text-amber-600 dark:text-amber-400';
                             if (requestBtn) requestBtn.disabled = true;
                         } else if (user.collegeName) {
-                            collegeStatus.textContent = `Status: Verified Â· ${user.collegeName}`;
+                            collegeStatus.textContent = `Status: Verified · ${user.collegeName}`;
                             collegeStatus.className = 'mt-2 text-sm text-green-600 dark:text-green-400';
                             if (requestBtn) requestBtn.disabled = false;
                         } else {
@@ -833,6 +834,8 @@
             }
         });
     </script>
+    <script src="/js/role-logo-fixes.js"></script>
 </body>
 </html>
+
 

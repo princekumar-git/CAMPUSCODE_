@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -48,6 +48,7 @@
     .dark .tab-btn.active{border-bottom-color:#60a5fa;color:#60a5fa}
     #outputPanel pre { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
   </style>
+    <link rel="stylesheet" href="/css/role-dark-fixes.css">
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
   <div class="flex h-screen overflow-hidden">
@@ -564,7 +565,7 @@
       
       if(d.status === 'accepted') {
         badge.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
-          <i class="fas fa-check mr-1"></i>Accepted â€” +${d.pointsEarned} XP</span>`;
+          <i class="fas fa-check mr-1"></i>Accepted — +${d.pointsEarned} XP</span>`;
       } else {
         badge.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
           <i class="fas fa-times mr-1"></i>Wrong Answer (${d.passed}/${d.total} passed)</span>`;
@@ -581,7 +582,7 @@
           html += `<div class="rounded-lg p-3 ${tc.passed ? 'tc-pass' : 'tc-fail'}">
             <div class="flex items-center gap-2 mb-1">
               <i class="fas fa-${tc.passed ? 'check text-green-600' : 'times text-red-600'} text-xs"></i>
-              <span class="text-xs font-semibold ${tc.passed ? 'text-green-700' : 'text-red-700'}">Test Case ${tc.testCase} ${tc.passed ? 'â€” Passed' : 'â€” Failed'}</span>
+              <span class="text-xs font-semibold ${tc.passed ? 'text-green-700' : 'text-red-700'}">Test Case ${tc.testCase} ${tc.passed ? '— Passed' : '— Failed'}</span>
             </div>`;
           if(!tc.passed && tc.expected !== undefined) {
             html += `<div class="grid grid-cols-2 gap-2 mt-2">
@@ -626,7 +627,7 @@
             <i class="fas ${icon} ${color}"></i>
             <div>
               <p class="text-sm font-medium ${color}">${label}</p>
-              <p class="text-xs text-gray-400">${s.language.toUpperCase()} Â· ${new Date(s.createdAt).toLocaleString()}</p>
+              <p class="text-xs text-gray-400">${s.language.toUpperCase()} · ${new Date(s.createdAt).toLocaleString()}</p>
             </div>
           </div>
           ${s.points_earned > 0 ? `<span class="text-xs text-primary-500 dark:text-blue-400 font-bold">+${s.points_earned} XP</span>` : ''}
@@ -644,8 +645,10 @@
   loadUser();
   loadProblem();
 </script>
+    <script src="/js/role-logo-fixes.js"></script>
 </body>
 </html>
+
 
 
 
