@@ -2174,7 +2174,7 @@ module.exports = (db, transporter) => {
                             if (infoErr) return res.status(500).json({ success: false, message: infoErr.message });
                             if (!infoRow) return res.status(404).json({ success: false, message: 'Contest not found in your HOD scope' });
 
-                            db.run(`UPDATE contests SET hod_verified = 1 WHERE id = ? AND createdBy IN (${ownerPlaceholders})`, [id, ...managedUserIds], function(err) {
+                            db.run(`UPDATE contests SET hod_verified = 1, hod_verified_by = ?, hod_verified_at = ? WHERE id = ? AND createdBy IN (${ownerPlaceholders})`, [req.session.user.id, new Date().toISOString(), id, ...managedUserIds], function(err) {
                                 if (err) return res.status(500).json({ success: false, message: err.message });
 
                                 const creatorRole = String(infoRow.creatorRole || '').toLowerCase();
