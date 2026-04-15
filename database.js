@@ -418,6 +418,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             db.run(`DROP TRIGGER IF EXISTS trg_account_users_insert`);
             db.run(`DROP TRIGGER IF EXISTS trg_account_users_update`);
             db.run(`DROP TRIGGER IF EXISTS trg_account_users_delete`);
+            db.run(`DROP TRIGGER IF EXISTS trg_users_block_superadmin_delete`);
 
             db.run(`CREATE TRIGGER IF NOT EXISTS trg_account_users_insert
                     INSTEAD OF INSERT ON account_users
@@ -482,6 +483,13 @@ const db = new sqlite3.Database(dbPath, (err) => {
                         SELECT RAISE(ABORT, 'Superadmin account cannot be deleted')
                         WHERE LOWER(COALESCE(OLD.role, '')) = 'superadmin';
                         DELETE FROM users WHERE id = OLD.id;
+                    END`, () => {});
+
+            db.run(`CREATE TRIGGER IF NOT EXISTS trg_users_block_superadmin_delete
+                    BEFORE DELETE ON users
+                    BEGIN
+                        SELECT RAISE(ABORT, 'Superadmin account cannot be deleted')
+                        WHERE LOWER(COALESCE(OLD.role, '')) = 'superadmin';
                     END`, () => {});
 
 
@@ -912,6 +920,29 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 WHERE createdBy NOT IN (SELECT id FROM users WHERE role = 'superadmin')
             `, () => {});
 
+            // Normalize ownership for global contests approved by superadmin.
+            // Legacy rows may have been created through college flows and later published globally.
+            db.run(`
+                UPDATE contests
+                SET createdBy = approved_by
+                WHERE LOWER(COALESCE(NULLIF(scope, ''), NULLIF(level, ''), NULLIF(visibility_scope, ''), 'college')) = 'global'
+                  AND approved_by IN (SELECT id FROM users WHERE LOWER(COALESCE(role, '')) = 'superadmin')
+                  AND COALESCE(createdBy, 0) != approved_by
+            `, () => {});
+
+            // Backfill contest collegeName from contest creator when legacy rows are blank.
+            db.run(`
+                UPDATE contests
+                SET collegeName = (
+                    SELECT u.collegeName
+                    FROM users u
+                    WHERE u.id = contests.createdBy
+                )
+                WHERE TRIM(COALESCE(collegeName, '')) = ''
+                  AND createdBy IS NOT NULL
+                  AND createdBy IN (SELECT id FROM users)
+            `, () => {});
+
             // ==========================================
             // 11. SUPPORT TICKETS TABLE
             // ==========================================
@@ -934,6 +965,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 FOREIGN KEY(resolved_by) REFERENCES users(id) ON DELETE SET NULL
             )`, (err) => {
                 if (err) console.error("Error creating support_tickets table:", err.message);
+            });
+
+            db.run(`CREATE TABLE IF NOT EXISTS activity_feed (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                collegeName TEXT DEFAULT '',
+                action TEXT DEFAULT '',
+                createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+            )`, (err) => {
+                if (err) console.error("Error creating activity_feed table:", err.message);
             });
 
             // ==========================================

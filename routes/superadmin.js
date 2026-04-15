@@ -324,6 +324,9 @@ module.exports = (db) => {
                 SELECT c.*, u.fullName as creatorName, u.role as creatorRole
                 FROM contests c
                 LEFT JOIN account_users u ON c.createdBy = u.id
+                WHERE
+                    LOWER(COALESCE(NULLIF(c.scope, ''), NULLIF(c.level, ''), NULLIF(c.visibility_scope, ''), '')) = 'global'
+                    OR LOWER(COALESCE(u.role, '')) = 'superadmin'
                 ORDER BY c.id DESC
             `, []);
             const contests = rows.map((row) => {

@@ -130,12 +130,14 @@ const GLOBAL_SOLVE_WEIGHT_FOR_COLLEGE_RANK = 0.3;
         const creatorRole = String(contestRow?.creatorRole || '').toLowerCase();
         const creatorCollege = String(contestRow?.creatorCollegeName || contestRow?.collegeName || '').trim();
         const studentCollege = String(sessionUser?.collegeName || '').trim();
+        const creatorCollegeNorm = creatorCollege.toLowerCase();
+        const studentCollegeNorm = studentCollege.toLowerCase();
         const studentDepartment = String(sessionUser?.department || '').trim();
         const contestDepartment = String(contestRow?.department || '').trim();
         const scope = String(contestRow?.visibility_scope || contestRow?.scope || contestRow?.level || '').toLowerCase();
 
         if (creatorRole === 'superadmin') return true;
-        if (!studentCollege || !creatorCollege || creatorCollege !== studentCollege) return false;
+        if (!studentCollegeNorm || !creatorCollegeNorm || creatorCollegeNorm !== studentCollegeNorm) return false;
 
         if (scope === 'global') return true;
         if (scope === 'college') return true;
@@ -814,6 +816,18 @@ const GLOBAL_SOLVE_WEIGHT_FOR_COLLEGE_RANK = 0.3;
             res.status(500).send('Unable to load forum at this time.');
         }
     });
+
+    router.get('/new-post', requireRole('student'), (req, res) => {
+        res.sendFile(path.join(__dirname, '../views/student/new-post.html'));
+    });
+
+    router.get('/new-post.html', requireRole('student'), (req, res) => res.redirect('/student/new-post'));
+
+    router.get('/thread', requireRole('student'), (req, res) => {
+        res.sendFile(path.join(__dirname, '../views/student/thread.html'));
+    });
+
+    router.get('/thread.html', requireRole('student'), (req, res) => res.redirect('/student/thread'));
 
     router.get('/community', requireRole('student'), (req, res) => res.redirect('/student/forum'));
 
