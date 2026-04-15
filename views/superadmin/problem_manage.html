@@ -142,43 +142,59 @@
 
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-gray-800 dark:text-gray-100">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between transition-colors duration-200">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-primary-50 dark:bg-primary-900/30 text-primary-500 dark:text-primary-300 flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-layer-group"></i></div>
-                    </div>
-                    <div>
-                        <p id="stat-total" class="text-3xl font-bold text-gray-800 dark:text-white mb-1">0</p>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total</p>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between transition-colors duration-200">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/30 text-green-500 dark:text-green-400 flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-check"></i></div>
-                    </div>
-                    <div>
-                        <p id="stat-easy" class="text-3xl font-bold text-gray-800 dark:text-white mb-1">0</p>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Easy</p>
+                <div class="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-2xl p-6 shadow-lg border border-primary-200 dark:border-primary-700/50 flex flex-col justify-between transition-colors duration-200 relative overflow-hidden">
+                    <div class="absolute -right-8 -top-8 w-24 h-24 bg-primary-200 dark:bg-primary-700 rounded-full opacity-20"></div>
+                    <div class="relative z-10">
+                        <p class="text-xs font-bold text-primary-600 uppercase tracking-widest mb-4">Total Problems</p>
+                        <div class="flex items-end gap-4">
+                            <div class="w-16 h-16 rounded-2xl bg-white dark:bg-primary-800/60 text-primary-600 flex items-center justify-center text-2xl shadow-md border border-primary-100 dark:border-primary-700"><i class="fa-solid fa-layer-group"></i></div>
+                            <div>
+                                <p id="stat-total" class="text-4xl font-bold text-primary-900 leading-tight">0</p>
+                                <p class="text-xs text-primary-600 font-medium mt-1">coding challenges</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between transition-colors duration-200">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-yellow-50 dark:bg-yellow-900/30 text-yellow-500 dark:text-yellow-400 flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-bolt"></i></div>
-                    </div>
-                    <div>
-                        <p id="stat-medium" class="text-3xl font-bold text-gray-800 dark:text-white mb-1">0</p>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Medium</p>
+                <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-6 shadow-lg border border-green-200 dark:border-green-700/50 flex flex-col justify-between transition-colors duration-200 relative overflow-hidden">
+                    <div class="absolute -right-8 -top-8 w-24 h-24 bg-green-200 dark:bg-green-700 rounded-full opacity-20"></div>
+                    <div class="relative z-10">
+                        <p class="text-xs font-bold text-green-600 dark:text-green-300 uppercase tracking-widest mb-4">Easy Problems</p>
+                        <div class="flex items-end gap-4">
+                            <div class="w-16 h-16 rounded-2xl bg-white dark:bg-green-800/60 text-green-600 dark:text-green-300 flex items-center justify-center text-2xl shadow-md border border-green-100 dark:border-green-700"><i class="fa-solid fa-check"></i></div>
+                            <div>
+                                <p id="stat-easy" class="text-4xl font-bold text-green-900 dark:text-green-100 leading-tight">0</p>
+                                <p class="text-xs text-green-600 dark:text-green-300 font-medium mt-1">beginner level</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between transition-colors duration-200">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-fire"></i></div>
+                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-2xl p-6 shadow-lg border border-yellow-200 dark:border-yellow-700/50 flex flex-col justify-between transition-colors duration-200 relative overflow-hidden">
+                    <div class="absolute -right-8 -top-8 w-24 h-24 bg-yellow-200 dark:bg-yellow-700 rounded-full opacity-20"></div>
+                    <div class="relative z-10">
+                        <p class="text-xs font-bold text-yellow-600 dark:text-yellow-300 uppercase tracking-widest mb-4">Medium Problems</p>
+                        <div class="flex items-end gap-4">
+                            <div class="w-16 h-16 rounded-2xl bg-white dark:bg-yellow-800/60 text-yellow-600 dark:text-yellow-300 flex items-center justify-center text-2xl shadow-md border border-yellow-100 dark:border-yellow-700"><i class="fa-solid fa-bolt"></i></div>
+                            <div>
+                                <p id="stat-medium" class="text-4xl font-bold text-yellow-900 dark:text-yellow-100 leading-tight">0</p>
+                                <p class="text-xs text-yellow-600 dark:text-yellow-300 font-medium mt-1">intermediate level</p>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <p id="stat-hard" class="text-3xl font-bold text-gray-800 dark:text-white mb-1">0</p>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Hard</p>
+                </div>
+
+                <div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-2xl p-6 shadow-lg border border-red-200 dark:border-red-700/50 flex flex-col justify-between transition-colors duration-200 relative overflow-hidden">
+                    <div class="absolute -right-8 -top-8 w-24 h-24 bg-red-200 dark:bg-red-700 rounded-full opacity-20"></div>
+                    <div class="relative z-10">
+                        <p class="text-xs font-bold text-red-600 dark:text-red-300 uppercase tracking-widest mb-4">Hard Problems</p>
+                        <div class="flex items-end gap-4">
+                            <div class="w-16 h-16 rounded-2xl bg-white dark:bg-red-800/60 text-red-600 dark:text-red-300 flex items-center justify-center text-2xl shadow-md border border-red-100 dark:border-red-700"><i class="fa-solid fa-fire"></i></div>
+                            <div>
+                                <p id="stat-hard" class="text-4xl font-bold text-red-900 dark:text-red-100 leading-tight">0</p>
+                                <p class="text-xs text-red-600 dark:text-red-300 font-medium mt-1">advanced level</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampusCode - College Management</title>
+    <title>CampusCode - Manage College</title>
     <link rel="shortcut icon" href="/campuscode-logo.jpeg" type="image/jpeg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -15,224 +15,466 @@
                 extend: {
                     fontFamily: { sans: ["Poppins", "sans-serif"] },
                     colors: {
-                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" }
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440", 700: "#091A2E", 800: "#05101C" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
                     }
                 }
             }
         };
     </script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        .dark ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+        
+        /* Sidebar Styles matching Forum & Dashboard */
+        .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+        .sidebar-brand { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+        .sidebar-brand-logo { width: 2.25rem; height: 2.25rem; object-fit: contain; flex-shrink: 0; }
+        .nav-item {
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.25rem;
+            color: #374151;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .nav-item:hover { background-color: #f3f4f6; }
+        .dark .nav-item { color: #d1d5db; }
+        .dark .nav-item:hover { background-color: #374151; }
+        .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; font-weight: 600; }
+        .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
+        .nav-item.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 4px;
+            background-color: #2e5e99;
+            border-radius: 0 4px 4px 0;
+        }
+        .dark .nav-item.active::before { background-color: #60a5fa; }
+        .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
+        .nav-item span { font-size: 0.875rem; }
+
+        /* Hide scrollbar for select tabs */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Fade Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+    </style>
     <link rel="stylesheet" href="/css/role-dark-fixes.css">
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <header class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 px-5 py-4 mb-5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <a href="/superadmin/dashboard" class="inline-flex items-center gap-2 text-sm font-semibold text-primary-500 hover:text-primary-600">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        <span>Back</span>
-                    </a>
-                    <div>
-                        <h1 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">College Management</h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Institution details with dynamic metrics for all authorized colleges.</p>
-                    </div>
-                </div>
-                <button onclick="toggleTheme()" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-                    <i class="fa-solid fa-moon dark:hidden text-lg"></i>
-                    <i class="fa-solid fa-sun hidden dark:block text-lg"></i>
-                </button>
-            </div>
-        </header>
 
-        <section class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 mb-5">
-            <div id="college-strip" class="flex gap-2 overflow-x-auto pb-3"></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">University</label>
-                    <input id="college-university" type="text" placeholder="Enter university name" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-800 dark:text-gray-100">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Accreditation</label>
-                    <input id="college-accreditation" type="text" placeholder="Enter accreditation" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-800 dark:text-gray-100">
-                </div>
-            </div>
-            <div class="pt-3 flex justify-end">
-                <button id="save-college-meta-btn" onclick="saveCollegeMetadata()" class="px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold">Save Details</button>
-            </div>
-        </section>
-
-        <section class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 mb-5 overflow-hidden">
-            <div class="px-4 md:px-6 border-b border-gray-200 dark:border-gray-700">
-                <nav class="flex gap-6 overflow-x-auto">
-                    <button data-tab="overview" class="tab-btn py-3 border-b-2 border-primary-500 text-primary-500 font-semibold">Overview</button>
-                    <button data-tab="academics" class="tab-btn py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 font-medium">Academics</button>
-                    <button data-tab="users" class="tab-btn py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 font-medium">Users</button>
-                    <button data-tab="content" class="tab-btn py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 font-medium">Content</button>
-                </nav>
-            </div>
-
-            <div id="tab-overview" class="tab-panel p-4 md:p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900/30">
-                        <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Programs</p>
-                        <p id="metric-programs" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">0</p>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900/30">
-                        <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Branches</p>
-                        <p id="metric-branches" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">0</p>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900/30">
-                        <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Students</p>
-                        <p id="metric-students" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">0</p>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900/30">
-                        <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Faculty</p>
-                        <p id="metric-faculty" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">0</p>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900/30">
-                        <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Sections</p>
-                        <p id="metric-sections" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">0</p>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900/30">
-                        <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Subjects</p>
-                        <p id="metric-subjects" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">0</p>
-                    </div>
+    <div id="appShell" class="flex h-screen overflow-hidden">
+        <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+            <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+                <div class="sidebar-brand text-2xl font-bold text-gray-800 dark:text-white overflow-hidden whitespace-nowrap">
+                    <img src="/campuscode-logo.jpeg" alt="CampusCode logo" class="sidebar-brand-logo rounded-md shadow-sm">
+                    <span class="transition-all duration-300 opacity-100 w-auto">CampusCode<span class="text-primary-400 dark:text-primary-200 text-xs align-top ml-0.5">SA</span></span>
                 </div>
             </div>
 
-            <div id="tab-academics" class="tab-panel p-4 md:p-6 hidden">
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
-                    <div>
-                        <label class="block text-xs uppercase font-semibold mb-1">Program</label>
-                        <select id="academic-program-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase font-semibold mb-1">Branch</label>
-                        <select id="academic-branch-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase font-semibold mb-1">Section</label>
-                        <select id="academic-section-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase font-semibold mb-1">Subject</label>
-                        <select id="academic-subject-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
-                    </div>
-                    <div class="flex items-end">
-                        <button id="clear-academic-filters" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm font-semibold">Clear</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Program Count</p>
-                        <p id="academic-programs" class="text-3xl font-bold text-primary-500">0</p>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Branch Count</p>
-                        <p id="academic-branches" class="text-3xl font-bold text-primary-500">0</p>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Section Count</p>
-                        <p id="academic-sections" class="text-3xl font-bold text-primary-500">0</p>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Subject Count</p>
-                        <p id="academic-subjects" class="text-3xl font-bold text-primary-500">0</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold mb-2">Programs</p>
-                        <ul id="list-programs" class="text-sm space-y-1 max-h-44 overflow-auto"></ul>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold mb-2">Branches</p>
-                        <ul id="list-branches" class="text-sm space-y-1 max-h-44 overflow-auto"></ul>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold mb-2">Sections</p>
-                        <ul id="list-sections" class="text-sm space-y-1 max-h-44 overflow-auto"></ul>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold mb-2">Subjects</p>
-                        <ul id="list-subjects" class="text-sm space-y-1 max-h-44 overflow-auto"></ul>
-                    </div>
-                </div>
-            </div>
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+                <p class="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 mt-2">Menu</p>
+                <a href="/superadmin/dashboard" class="nav-item active">
+                    <i class="fa-solid fa-building-columns"></i>
+                    <span>Manage Colleges</span>
+                </a>
+                <a href="/superadmin/problems" class="nav-item">
+                    <i class="fa-solid fa-code"></i>
+                    <span>Manage Problems</span>
+                </a>
+                <a href="/superadmin/contest" class="nav-item">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>Manage Contests</span>
+                </a>
+                <a href="/superadmin/support" class="nav-item">
+                    <i class="fa-solid fa-life-ring"></i>
+                    <span>Support Tickets</span>
+                </a>
+                <a href="/forum/forum.html" class="nav-item">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>Community Forum</span>
+                </a>
+            </nav>
 
-            <div id="tab-users" class="tab-panel p-4 md:p-6 hidden">
-                <div class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-4">
-                    <div>
-                        <label class="block text-xs uppercase font-semibold mb-1">User Type</label>
-                        <select id="user-type-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
-                            <option value="all">All</option>
-                            <option value="student">Student</option>
-                            <option value="faculty">Faculty</option>
-                        </select>
+            <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+                <a href="/auth/logout" class="nav-item text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+                <div class="w-full text-left flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700 mt-2 border border-gray-100 dark:border-gray-600">
+                    <div class="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-inner">
+                        <%= (typeof user !== 'undefined' && user.fullName) ? user.fullName.split(' ').filter(Boolean).slice(0,2).map(part => part[0]).join('').toUpperCase() : 'SA' %>
                     </div>
-                    <div>
-                        <label class="block text-xs uppercase font-semibold mb-1">Program</label>
-                        <select id="user-program-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
+                    <div class="min-w-0">
+                        <div class="text-sm font-bold text-gray-800 dark:text-white truncate leading-tight"><%= (typeof user !== 'undefined' && user.fullName) ? user.fullName : 'Super Admin' %></div>
+                        <div class="text-[10px] text-primary-500 dark:text-primary-200 font-semibold uppercase tracking-wider">SuperAdmin</div>
                     </div>
-                    <div>
-                        <label class="block text-xs uppercase font-semibold mb-1">Branch</label>
-                        <select id="user-branch-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase font-semibold mb-1">Section</label>
-                        <select id="user-section-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase font-semibold mb-1">Subject</label>
-                        <select id="user-subject-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"></select>
-                    </div>
-                    <div class="flex items-end">
-                        <button id="clear-user-filters" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm font-semibold">Clear</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Student Count</p>
-                        <p id="users-students" class="text-3xl font-bold text-primary-500">0</p>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Faculty Count</p>
-                        <p id="users-faculty" class="text-3xl font-bold text-primary-500">0</p>
-                    </div>
-                </div>
-                <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">College Admin</p>
-                    <div id="college-admin-list" class="space-y-2 text-sm text-gray-700 dark:text-gray-300"></div>
-                </div>
-                <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 mt-4">
-                    <p class="text-sm font-semibold mb-2">Users List</p>
-                    <div id="users-list" class="space-y-2 max-h-72 overflow-auto"></div>
                 </div>
             </div>
+        </aside>
 
-            <div id="tab-content" class="tab-panel p-4 md:p-6 hidden">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Problems Created</p>
-                        <p id="content-problems" class="text-3xl font-bold text-primary-500">0</p>
+        <div class="flex-1 overflow-y-auto w-full relative">
+            
+            <header class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm transition-colors duration-200 sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                    <div class="flex items-center gap-4">
+                        <a href="/superadmin/dashboard" class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-900/30 dark:hover:text-primary-400 transition-colors shadow-sm">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </a>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-800 dark:text-white tracking-tight">College Dashboard</h1>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">Manage data and infrastructure.</p>
+                        </div>
                     </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Contests Created</p>
-                        <p id="content-contests" class="text-3xl font-bold text-primary-500">0</p>
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleTheme()" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                            <i id="theme-toggle-dark-icon" class="fa-solid fa-moon dark:hidden text-lg"></i>
+                            <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden dark:block text-lg"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold mb-2">Problems List</p>
-                        <ul id="content-problems-list" class="text-sm space-y-1 max-h-64 overflow-auto"></ul>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                
+                <div class="bg-gradient-to-r from-primary-600 to-primary-800 rounded-3xl p-8 md:p-10 text-white shadow-lg mb-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
+                    <div class="absolute bottom-0 left-10 w-40 h-40 bg-blue-300 opacity-20 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold tracking-widest uppercase border border-white/20 shadow-sm">Active Configuration</span>
+                        </div>
+                        <h2 id="banner-college-name" class="text-3xl md:text-5xl font-extrabold tracking-tight mb-2"><i class="fas fa-circle-notch fa-spin text-2xl text-primary-200"></i> Loading...</h2>
+                        <p id="banner-college-meta" class="text-primary-100 text-sm max-w-2xl font-medium">Manage infrastructure, user roles, and core academic entities for this institution.</p>
                     </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                        <p class="text-sm font-semibold mb-2">Contests List</p>
-                        <ul id="content-contests-list" class="text-sm space-y-1 max-h-64 overflow-auto"></ul>
+                    <i class="fa-solid fa-building-columns absolute -right-4 -bottom-6 text-9xl opacity-5 transform -rotate-6"></i>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 md:p-8 mb-8 transition-colors">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-100 dark:border-gray-700 pb-5">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-900/40 text-primary-500 flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-sliders"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Global Settings</h3>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">Update top-level institution affiliations.</p>
+                            </div>
+                        </div>
+                        <button id="save-college-meta-btn" onclick="saveCollegeMetadata()" class="px-6 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 text-sm font-semibold shadow-md transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check"></i> Save Details
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 ml-1 uppercase tracking-wider">University Affiliation</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                                    <i class="fa-solid fa-landmark"></i>
+                                </div>
+                                <input id="college-university" type="text" placeholder="E.g., State Technical University" class="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/50 text-sm font-medium text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 outline-none transition-all placeholder-gray-400">
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 ml-1 uppercase tracking-wider">Accreditation Info</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                                    <i class="fa-solid fa-award"></i>
+                                </div>
+                                <input id="college-accreditation" type="text" placeholder="E.g., NAAC A++ / ABET" class="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/50 text-sm font-medium text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 outline-none transition-all placeholder-gray-400">
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+
+                <div class="bg-gray-100 dark:bg-gray-800/80 p-1.5 rounded-2xl flex gap-1 mb-8 overflow-x-auto hide-scrollbar border border-gray-200 dark:border-gray-700 w-full md:w-max">
+                    <button data-tab="overview" class="tab-btn flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 whitespace-nowrap bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm border border-gray-200/50 dark:border-gray-600">
+                        <i class="fa-solid fa-chart-pie mr-2 text-primary-500"></i> Overview
+                    </button>
+                    <button data-tab="academics" class="tab-btn flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 whitespace-nowrap text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200/50 dark:hover:bg-gray-700/50">
+                        <i class="fa-solid fa-book-open mr-2 opacity-70"></i> Academics
+                    </button>
+                    <button data-tab="users" class="tab-btn flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 whitespace-nowrap text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200/50 dark:hover:bg-gray-700/50">
+                        <i class="fa-solid fa-users mr-2 opacity-70"></i> Users
+                    </button>
+                    <button data-tab="content" class="tab-btn flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 whitespace-nowrap text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200/50 dark:hover:bg-gray-700/50">
+                        <i class="fa-solid fa-file-code mr-2 opacity-70"></i> Content
+                    </button>
+                </div>
+
+                <div id="tab-overview" class="tab-panel animate-fade-in">
+                    <div class="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110 z-0"></div>
+                            <div class="relative z-10 flex flex-col h-full justify-between">
+                                <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl shadow-inner mb-6">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-extrabold text-gray-900 dark:text-white" id="metric-programs">0</p>
+                                    <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-wide">Programs</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 w-24 h-24 bg-indigo-50 dark:bg-indigo-900/20 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110 z-0"></div>
+                            <div class="relative z-10 flex flex-col h-full justify-between">
+                                <div class="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl shadow-inner mb-6">
+                                    <i class="fa-solid fa-code-branch"></i>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-extrabold text-gray-900 dark:text-white" id="metric-branches">0</p>
+                                    <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-wide">Branches</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 w-24 h-24 bg-purple-50 dark:bg-purple-900/20 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110 z-0"></div>
+                            <div class="relative z-10 flex flex-col h-full justify-between">
+                                <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shadow-inner mb-6">
+                                    <i class="fa-solid fa-users"></i>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-extrabold text-gray-900 dark:text-white" id="metric-students">0</p>
+                                    <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-wide">Students</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 w-24 h-24 bg-amber-50 dark:bg-amber-900/20 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110 z-0"></div>
+                            <div class="relative z-10 flex flex-col h-full justify-between">
+                                <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shadow-inner mb-6">
+                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-extrabold text-gray-900 dark:text-white" id="metric-faculty">0</p>
+                                    <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-wide">Faculty</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 w-24 h-24 bg-green-50 dark:bg-green-900/20 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110 z-0"></div>
+                            <div class="relative z-10 flex flex-col h-full justify-between">
+                                <div class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 flex items-center justify-center text-xl shadow-inner mb-6">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-extrabold text-gray-900 dark:text-white" id="metric-sections">0</p>
+                                    <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-wide">Sections</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 w-24 h-24 bg-rose-50 dark:bg-rose-900/20 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110 z-0"></div>
+                            <div class="relative z-10 flex flex-col h-full justify-between">
+                                <div class="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shadow-inner mb-6">
+                                    <i class="fa-solid fa-book"></i>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-extrabold text-gray-900 dark:text-white" id="metric-subjects">0</p>
+                                    <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-wide">Subjects</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-academics" class="tab-panel hidden">
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+                        <div class="flex items-center gap-3 mb-5">
+                            <i class="fa-solid fa-filter text-gray-400"></i>
+                            <h4 class="text-sm font-bold text-gray-800 dark:text-white uppercase tracking-wider">Dynamic Filtering</h4>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <div class="relative">
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 ml-1">Program</label>
+                                <div class="relative">
+                                    <select id="academic-program-filter" class="w-full pl-4 pr-10 py-2.5 appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-sm font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all cursor-pointer"></select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 ml-1">Branch</label>
+                                <div class="relative">
+                                    <select id="academic-branch-filter" class="w-full pl-4 pr-10 py-2.5 appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-sm font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all cursor-pointer"></select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 ml-1">Section</label>
+                                <div class="relative">
+                                    <select id="academic-section-filter" class="w-full pl-4 pr-10 py-2.5 appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-sm font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all cursor-pointer"></select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 ml-1">Subject</label>
+                                <div class="relative">
+                                    <select id="academic-subject-filter" class="w-full pl-4 pr-10 py-2.5 appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-sm font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all cursor-pointer"></select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                                </div>
+                            </div>
+                            <div class="flex items-end">
+                                <button id="clear-academic-filters" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-bold text-gray-700 dark:text-gray-300 shadow-sm transition-colors flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-rotate-right"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-96">
+                            <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
+                                <p class="text-sm font-bold text-gray-800 dark:text-white">Programs</p>
+                                <span id="academic-programs" class="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold px-2 py-1 rounded-md">0</span>
+                            </div>
+                            <div id="list-programs" class="flex-1 overflow-y-auto p-3 space-y-1"></div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-96">
+                            <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
+                                <p class="text-sm font-bold text-gray-800 dark:text-white">Branches</p>
+                                <span id="academic-branches" class="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 text-xs font-bold px-2 py-1 rounded-md">0</span>
+                            </div>
+                            <div id="list-branches" class="flex-1 overflow-y-auto p-3 space-y-1"></div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-96">
+                            <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
+                                <p class="text-sm font-bold text-gray-800 dark:text-white">Sections</p>
+                                <span id="academic-sections" class="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold px-2 py-1 rounded-md">0</span>
+                            </div>
+                            <div id="list-sections" class="flex-1 overflow-y-auto p-3 space-y-1"></div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-96">
+                            <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
+                                <p class="text-sm font-bold text-gray-800 dark:text-white">Subjects</p>
+                                <span id="academic-subjects" class="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 text-xs font-bold px-2 py-1 rounded-md">0</span>
+                            </div>
+                            <div id="list-subjects" class="flex-1 overflow-y-auto p-3 space-y-1"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-users" class="tab-panel hidden">
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                        <div class="lg:col-span-1 space-y-6">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm text-center">
+                                    <div class="w-10 h-10 mx-auto rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center mb-2"><i class="fa-solid fa-user-graduate"></i></div>
+                                    <p id="users-students" class="text-2xl font-extrabold text-gray-900 dark:text-white">0</p>
+                                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Students</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm text-center">
+                                    <div class="w-10 h-10 mx-auto rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-500 flex items-center justify-center mb-2"><i class="fa-solid fa-chalkboard-user"></i></div>
+                                    <p id="users-faculty" class="text-2xl font-extrabold text-gray-900 dark:text-white">0</p>
+                                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Faculty</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                                <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                                    <p class="text-sm font-bold flex items-center gap-2"><i class="fa-solid fa-user-shield text-gray-400"></i> Admins</p>
+                                </div>
+                                <div class="p-4 bg-white dark:bg-gray-800">
+                                    <div id="college-admin-list" class="space-y-2"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-3">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 mb-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+                                    <div class="relative">
+                                        <select id="user-type-filter" class="w-full pl-4 pr-10 py-2.5 appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-sm font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all cursor-pointer">
+                                            <option value="all">All Roles</option>
+                                            <option value="student">Student</option>
+                                            <option value="faculty">Faculty</option>
+                                        </select>
+                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                                    </div>
+                                    <div class="relative">
+                                        <select id="user-program-filter" class="w-full pl-4 pr-10 py-2.5 appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-sm font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all cursor-pointer"></select>
+                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                                    </div>
+                                    <div class="relative">
+                                        <select id="user-branch-filter" class="w-full pl-4 pr-10 py-2.5 appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-sm font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all cursor-pointer"></select>
+                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                                    </div>
+                                    <div class="relative">
+                                        <select id="user-section-filter" class="w-full pl-4 pr-10 py-2.5 appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-sm font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all cursor-pointer"></select>
+                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                                    </div>
+                                    <div class="relative">
+                                        <select id="user-subject-filter" class="w-full pl-4 pr-10 py-2.5 appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-sm font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all cursor-pointer"></select>
+                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                                    </div>
+                                    <button id="clear-user-filters" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-bold text-gray-700 dark:text-gray-300 shadow-sm transition-colors">
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="users-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2 pb-4 hide-scrollbar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-content" class="tab-panel hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex flex-col gap-4">
+                            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex items-center justify-between hover:shadow-md transition-shadow">
+                                <div>
+                                    <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Authored Problems</p>
+                                    <p id="content-problems" class="text-4xl font-extrabold text-gray-900 dark:text-white mt-2">0</p>
+                                </div>
+                                <div class="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-900/20 text-rose-500 flex items-center justify-center text-2xl shadow-inner"><i class="fa-solid fa-code"></i></div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-96">
+                                <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50"><p class="text-sm font-bold">Problems Directory</p></div>
+                                <div id="content-problems-list" class="flex-1 overflow-y-auto p-3 space-y-1"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-4">
+                            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex items-center justify-between hover:shadow-md transition-shadow">
+                                <div>
+                                    <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Hosted Contests</p>
+                                    <p id="content-contests" class="text-4xl font-extrabold text-gray-900 dark:text-white mt-2">0</p>
+                                </div>
+                                <div class="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-900/20 text-amber-500 flex items-center justify-center text-2xl shadow-inner"><i class="fa-solid fa-trophy"></i></div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-96">
+                                <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50"><p class="text-sm font-bold">Contests Directory</p></div>
+                                <div id="content-contests-list" class="flex-1 overflow-y-auto p-3 space-y-1"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
     </div>
 
     <script>
@@ -240,6 +482,7 @@
         let colleges = [];
         let selectedCollegeId = 0;
 
+        // Theme init
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
@@ -260,38 +503,80 @@
         function setTab(tabName) {
             document.querySelectorAll('.tab-btn').forEach((btn) => {
                 const active = btn.dataset.tab === tabName;
-                btn.classList.toggle('border-primary-500', active);
-                btn.classList.toggle('text-primary-500', active);
+                btn.classList.toggle('bg-white', active);
+                btn.classList.toggle('dark:bg-gray-700', active);
+                btn.classList.toggle('text-gray-900', active);
+                btn.classList.toggle('dark:text-white', active);
+                btn.classList.toggle('shadow-sm', active);
+                btn.classList.toggle('border', active);
+                btn.classList.toggle('border-gray-200/50', active);
+                btn.classList.toggle('dark:border-gray-600', active);
                 btn.classList.toggle('font-semibold', active);
-                btn.classList.toggle('border-transparent', !active);
+                
                 btn.classList.toggle('text-gray-500', !active);
+                btn.classList.toggle('dark:text-gray-400', !active);
+                btn.classList.toggle('font-medium', !active);
+                btn.classList.toggle('hover:bg-gray-200/50', !active);
+                btn.classList.toggle('dark:hover:bg-gray-700/50', !active);
+
+                const icon = btn.querySelector('i');
+                if(icon) {
+                    if(active) {
+                        icon.classList.add('text-primary-500');
+                        icon.classList.remove('opacity-70');
+                    } else {
+                        icon.classList.remove('text-primary-500');
+                        icon.classList.add('opacity-70');
+                    }
+                }
             });
-            document.querySelectorAll('.tab-panel').forEach((panel) => panel.classList.add('hidden'));
+            document.querySelectorAll('.tab-panel').forEach((panel) => {
+                panel.classList.add('hidden');
+                panel.classList.remove('animate-fade-in');
+            });
             const target = document.getElementById(`tab-${tabName}`);
-            if (target) target.classList.remove('hidden');
+            if (target) {
+                target.classList.remove('hidden');
+                void target.offsetWidth; // trigger reflow
+                target.classList.add('animate-fade-in');
+            }
         }
 
-        function renderCollegeStrip() {
-            const container = document.getElementById('college-strip');
-            if (!colleges.length) {
-                container.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No colleges found.</p>';
+        // Modern List Renderer
+        function renderSimpleList(id, items, iconClass = 'fa-check', colorClass = 'text-gray-500 bg-gray-100 dark:bg-gray-700') {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (!items || !items.length) {
+                el.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-10 text-center px-4 h-full">
+                        <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-3 shadow-inner">
+                            <i class="fa-solid fa-box-open text-lg"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-gray-500 dark:text-gray-400">No records found</p>
+                    </div>
+                `;
                 return;
             }
-            const selected = colleges.find((c) => Number(c.id) === Number(selectedCollegeId));
-            if (!selected) {
-                container.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Selected college not found.</p>';
-                return;
-            }
-            container.innerHTML = `
-                <span class="px-4 py-2 rounded-full text-sm whitespace-nowrap border bg-primary-500 text-white border-primary-500 font-medium">
-                    ${selected.name}
-                </span>
-            `;
+            el.innerHTML = items.map((it) => `
+                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-600 mb-1">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}">
+                        <i class="fa-solid ${iconClass} text-xs"></i>
+                    </div>
+                    <p class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate flex-1">${it.name || it.title}</p>
+                </div>
+            `).join('');
         }
 
         function renderSelectedCollege() {
             const college = colleges.find((c) => Number(c.id) === Number(selectedCollegeId));
-            if (!college) return;
+            const bannerName = document.getElementById('banner-college-name');
+            if (!college) {
+                if(bannerName) bannerName.innerHTML = 'College Not Found';
+                return;
+            }
+
+            if(bannerName) bannerName.textContent = college.name;
+
             const metrics = college.metrics || {};
             document.getElementById('college-university').value = college.university || '';
             document.getElementById('college-accreditation').value = college.accreditation || '';
@@ -302,50 +587,50 @@
             document.getElementById('metric-faculty').textContent = metrics.facultyCount || 0;
             document.getElementById('metric-sections').textContent = metrics.sectionCount || 0;
             document.getElementById('metric-subjects').textContent = metrics.subjectCount || 0;
+            
             document.getElementById('academic-programs').textContent = metrics.programCount || 0;
             document.getElementById('academic-branches').textContent = metrics.branchCount || 0;
             document.getElementById('academic-sections').textContent = metrics.sectionCount || 0;
             document.getElementById('academic-subjects').textContent = metrics.subjectCount || 0;
+            
             document.getElementById('users-students').textContent = metrics.studentCount || 0;
             document.getElementById('users-faculty').textContent = metrics.facultyCount || 0;
             document.getElementById('content-problems').textContent = metrics.problemCount || 0;
             document.getElementById('content-contests').textContent = metrics.contestCount || 0;
-            renderSimpleList('list-programs', college.programs || []);
-            renderSimpleList('list-branches', college.branches || []);
-            renderSimpleList('list-sections', college.sections || []);
-            renderSimpleList('list-subjects', college.subjects || []);
+            
+            renderSimpleList('list-programs', college.programs || [], 'fa-graduation-cap', 'text-blue-500 bg-blue-50 dark:bg-blue-900/30');
+            renderSimpleList('list-branches', college.branches || [], 'fa-code-branch', 'text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30');
+            renderSimpleList('list-sections', college.sections || [], 'fa-layer-group', 'text-green-500 bg-green-50 dark:bg-green-900/30');
+            renderSimpleList('list-subjects', college.subjects || [], 'fa-book-open', 'text-purple-500 bg-purple-50 dark:bg-purple-900/30');
+            
             populateAcademicFilters(college);
             renderAcademicLists(college);
-            renderSimpleList('content-problems-list', college.problems || []);
-            renderSimpleList('content-contests-list', college.contests || []);
+            
+            renderSimpleList('content-problems-list', college.problems || [], 'fa-code', 'text-rose-500 bg-rose-50 dark:bg-rose-900/30');
+            renderSimpleList('content-contests-list', college.contests || [], 'fa-trophy', 'text-amber-500 bg-amber-50 dark:bg-amber-900/30');
+            
             populateUserFilters(college);
             renderUsersList(college);
 
             const adminList = document.getElementById('college-admin-list');
             if (!college.admins || !college.admins.length) {
-                adminList.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No active admin assigned.</p>';
+                adminList.innerHTML = '<p class="text-xs text-gray-500 dark:text-gray-400 italic py-2">No active admin assigned.</p>';
             } else {
                 adminList.innerHTML = college.admins.map((admin) => `
-                    <div class="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-900/30 px-3 py-2">
-                        <span class="font-medium">${admin.fullName}</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">${admin.email || ''}</span>
+                    <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700/50">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center font-bold text-xs text-gray-600 dark:text-gray-300">
+                            ${(admin.fullName || 'A').substring(0,1).toUpperCase()}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">${admin.fullName}</p>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400 truncate">${admin.email || 'No email'}</p>
+                        </div>
                     </div>
                 `).join('');
             }
-
-            renderCollegeStrip();
         }
 
-        function renderSimpleList(id, items) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            if (!items.length) {
-                el.innerHTML = '<li class="text-gray-500 dark:text-gray-400">-</li>';
-                return;
-            }
-            el.innerHTML = items.map((it) => `<li class="px-2 py-1 rounded bg-gray-50 dark:bg-gray-900/30">${it.name}</li>`).join('');
-        }
-
+        // --- Academic Filter Logic (Kept identical functionality) ---
         function populateSelectOptions(selectEl, options, allLabel, keepValue) {
             if (!selectEl) return 'all';
             selectEl.innerHTML = `<option value="all">${allLabel}</option>` +
@@ -418,169 +703,163 @@
                 : 'all';
 
             return {
-                allPrograms,
-                scopedBranchesByProgram,
-                scopedSectionsByBranch,
-                scopedSubjects,
-                effectiveProgramId: programId,
-                effectiveBranchId,
-                effectiveSectionId,
-                effectiveSubjectId
+                allPrograms, scopedBranchesByProgram, scopedSectionsByBranch, scopedSubjects,
+                effectiveProgramId: programId, effectiveBranchId, effectiveSectionId, effectiveSubjectId
             };
         }
 
         function populateAcademicFilters(college) {
-            const programSel = document.getElementById('academic-program-filter');
-            const branchSel = document.getElementById('academic-branch-filter');
-            const sectionSel = document.getElementById('academic-section-filter');
-            const subjectSel = document.getElementById('academic-subject-filter');
-            if (!programSel || !branchSel || !sectionSel || !subjectSel) return;
-            const keepProgram = programSel.value || 'all';
-            const keepBranch = branchSel.value || 'all';
-            const keepSection = sectionSel.value || 'all';
-            const keepSubject = subjectSel.value || 'all';
+            const pSel = document.getElementById('academic-program-filter');
+            const bSel = document.getElementById('academic-branch-filter');
+            const sSel = document.getElementById('academic-section-filter');
+            const subSel = document.getElementById('academic-subject-filter');
+            if (!pSel) return;
+            const keepP = pSel.value || 'all', keepB = bSel.value || 'all', keepS = sSel.value || 'all', keepSub = subSel.value || 'all';
 
-            const effectiveProgramId = populateSelectOptions(programSel, college.programs || [], 'All Programs', keepProgram);
-            const branches = effectiveProgramId === 'all'
-                ? (college.branches || [])
-                : (college.branches || []).filter((b) => {
-                    const ref = b.program_id ?? b.programId ?? b.program ?? '';
-                    if (ref === '' || ref === null || typeof ref === 'undefined') return true;
-                    return String(ref) === String(effectiveProgramId);
-                });
-            const effectiveBranchId = populateSelectOptions(branchSel, branches, 'All Branches', keepBranch);
+            const effPId = populateSelectOptions(pSel, college.programs || [], 'All Programs', keepP);
+            const branches = effPId === 'all' ? (college.branches || []) : (college.branches || []).filter((b) => {
+                const ref = b.program_id ?? b.programId ?? b.program ?? '';
+                return (ref === '' || ref == null) ? true : String(ref) === String(effPId);
+            });
+            const effBId = populateSelectOptions(bSel, branches, 'All Branches', keepB);
 
-            const sections = effectiveBranchId === 'all'
-                ? (college.sections || []).filter((s) => {
-                    const ref = s.branch_id ?? s.branchId ?? '';
-                    if (ref === '' || ref === null || typeof ref === 'undefined') return true;
-                    return branches.some((b) => String(b.id) === String(ref));
-                })
-                : (college.sections || []).filter((s) => {
-                    const ref = s.branch_id ?? s.branchId ?? '';
-                    if (ref === '' || ref === null || typeof ref === 'undefined') return true;
-                    return String(ref) === String(effectiveBranchId);
-                });
-            const effectiveSectionId = populateSelectOptions(sectionSel, sections, 'All Sections', keepSection);
+            const sections = effBId === 'all' ? (college.sections || []).filter((s) => {
+                const ref = s.branch_id ?? s.branchId ?? '';
+                return (ref === '' || ref == null) ? true : branches.some((b) => String(b.id) === String(ref));
+            }) : (college.sections || []).filter((s) => {
+                const ref = s.branch_id ?? s.branchId ?? '';
+                return (ref === '' || ref == null) ? true : String(ref) === String(effBId);
+            });
+            const effSId = populateSelectOptions(sSel, sections, 'All Sections', keepS);
 
             const subjects = (college.subjects || []).filter((subj) => {
-                const sectionRef = subj.section_id ?? subj.sectionId ?? '';
-                const branchRef = subj.branch_id ?? subj.branchId ?? '';
-                if (effectiveSectionId !== 'all') {
-                    if (sectionRef === '' || sectionRef === null || typeof sectionRef === 'undefined') return true;
-                    return String(sectionRef) === String(effectiveSectionId);
-                }
-                if (effectiveBranchId !== 'all') {
-                    if (branchRef === '' || branchRef === null || typeof branchRef === 'undefined') return true;
-                    return String(branchRef) === String(effectiveBranchId);
-                }
-                if (effectiveProgramId !== 'all') {
-                    if (branchRef === '' || branchRef === null || typeof branchRef === 'undefined') return true;
-                    return branches.some((b) => String(b.id) === String(branchRef));
-                }
+                const sRef = subj.section_id ?? subj.sectionId ?? '';
+                const bRef = subj.branch_id ?? subj.branchId ?? '';
+                if (effSId !== 'all') return (sRef === '' || sRef == null) ? true : String(sRef) === String(effSId);
+                if (effBId !== 'all') return (bRef === '' || bRef == null) ? true : String(bRef) === String(effBId);
+                if (effPId !== 'all') return (bRef === '' || bRef == null) ? true : branches.some((b) => String(b.id) === String(bRef));
                 return true;
             });
-            populateSelectOptions(subjectSel, subjects, 'All Subjects', keepSubject);
+            populateSelectOptions(subSel, subjects, 'All Subjects', keepSub);
         }
 
         function renderAcademicLists(college) {
-            const {
-                allPrograms,
-                scopedBranchesByProgram,
-                scopedSectionsByBranch,
-                scopedSubjects,
-                effectiveProgramId,
-                effectiveBranchId,
-                effectiveSectionId,
-                effectiveSubjectId
-            } = getAcademicScope(college);
+            const scope = getAcademicScope(college);
+            const progs = scope.effectiveProgramId === 'all' ? scope.allPrograms : scope.allPrograms.filter((p) => String(p.id) === String(scope.effectiveProgramId));
+            const branches = scope.effectiveBranchId === 'all' ? scope.scopedBranchesByProgram : scope.scopedBranchesByProgram.filter((b) => String(b.id) === String(scope.effectiveBranchId));
+            const sections = scope.effectiveSectionId === 'all' ? scope.scopedSectionsByBranch : scope.scopedSectionsByBranch.filter((s) => String(s.id) === String(scope.effectiveSectionId));
+            const subjects = scope.effectiveSubjectId === 'all' ? scope.scopedSubjects : scope.scopedSubjects.filter((s) => String(s.id) === String(scope.effectiveSubjectId));
 
-            const programs = effectiveProgramId === 'all'
-                ? allPrograms
-                : allPrograms.filter((p) => String(p.id) === String(effectiveProgramId));
-            const branches = effectiveBranchId === 'all'
-                ? scopedBranchesByProgram
-                : scopedBranchesByProgram.filter((b) => String(b.id) === String(effectiveBranchId));
-            const sections = effectiveSectionId === 'all'
-                ? scopedSectionsByBranch
-                : scopedSectionsByBranch.filter((s) => String(s.id) === String(effectiveSectionId));
-            const subjects = effectiveSubjectId === 'all'
-                ? scopedSubjects
-                : scopedSubjects.filter((sub) => String(sub.id) === String(effectiveSubjectId));
-
-            renderSimpleList('list-programs', programs);
-            renderSimpleList('list-branches', branches);
-            renderSimpleList('list-sections', sections);
-            renderSimpleList('list-subjects', subjects);
+            renderSimpleList('list-programs', progs, 'fa-graduation-cap', 'text-blue-500 bg-blue-50 dark:bg-blue-900/30');
+            renderSimpleList('list-branches', branches, 'fa-code-branch', 'text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30');
+            renderSimpleList('list-sections', sections, 'fa-layer-group', 'text-green-500 bg-green-50 dark:bg-green-900/30');
+            renderSimpleList('list-subjects', subjects, 'fa-book-open', 'text-purple-500 bg-purple-50 dark:bg-purple-900/30');
         }
 
         function populateUserFilters(college) {
-            const programSel = document.getElementById('user-program-filter');
-            const branchSel = document.getElementById('user-branch-filter');
-            const sectionSel = document.getElementById('user-section-filter');
-            const subjectSel = document.getElementById('user-subject-filter');
-            const programs = ['all', ...(college.programs || []).map((s) => s.name)];
-            const branches = ['all', ...(college.branches || []).map((s) => s.name)];
-            const sections = ['all', ...(college.sections || []).map((s) => s.name)];
-            const subjects = ['all', ...(college.subjects || []).map((s) => s.name)];
-            programSel.innerHTML = programs.map((s) => `<option value="${s}">${s === 'all' ? 'All Programs' : s}</option>`).join('');
-            branchSel.innerHTML = branches.map((s) => `<option value="${s}">${s === 'all' ? 'All Branches' : s}</option>`).join('');
-            sectionSel.innerHTML = sections.map((s) => `<option value="${s}">${s === 'all' ? 'All Sections' : s}</option>`).join('');
-            subjectSel.innerHTML = subjects.map((s) => `<option value="${s}">${s === 'all' ? 'All Subjects' : s}</option>`).join('');
+            const pSel = document.getElementById('user-program-filter');
+            const bSel = document.getElementById('user-branch-filter');
+            const sSel = document.getElementById('user-section-filter');
+            const subSel = document.getElementById('user-subject-filter');
+            const progs = ['all', ...(college.programs || []).map((s) => s.name)];
+            const brnchs = ['all', ...(college.branches || []).map((s) => s.name)];
+            const sects = ['all', ...(college.sections || []).map((s) => s.name)];
+            const subjs = ['all', ...(college.subjects || []).map((s) => s.name)];
+            pSel.innerHTML = progs.map((s) => `<option value="${s}">${s === 'all' ? 'All Programs' : s}</option>`).join('');
+            bSel.innerHTML = brnchs.map((s) => `<option value="${s}">${s === 'all' ? 'All Branches' : s}</option>`).join('');
+            sSel.innerHTML = sects.map((s) => `<option value="${s}">${s === 'all' ? 'All Sections' : s}</option>`).join('');
+            subSel.innerHTML = subjs.map((s) => `<option value="${s}">${s === 'all' ? 'All Subjects' : s}</option>`).join('');
         }
 
         function renderUsersList(college) {
             const usersBox = document.getElementById('users-list');
             if (!usersBox) return;
-            const typeFilter = document.getElementById('user-type-filter').value;
-            const programFilter = document.getElementById('user-program-filter').value;
-            const branchFilter = document.getElementById('user-branch-filter').value;
-            const sectionFilter = document.getElementById('user-section-filter').value;
-            const subjectFilter = document.getElementById('user-subject-filter').value;
+            const tFilt = document.getElementById('user-type-filter').value;
+            const pFilt = document.getElementById('user-program-filter').value;
+            const bFilt = document.getElementById('user-branch-filter').value;
+            const sFilt = document.getElementById('user-section-filter').value;
+            const subFilt = document.getElementById('user-subject-filter').value;
             let users = [...(college.users?.students || []), ...(college.users?.faculty || [])];
-            if (typeFilter !== 'all') users = users.filter((u) => u.userType === typeFilter);
-            if (programFilter !== 'all') users = users.filter((u) => (u.program || '') === programFilter);
-            if (branchFilter !== 'all') users = users.filter((u) => (u.branch || '') === branchFilter);
-            if (sectionFilter !== 'all') users = users.filter((u) => (u.section || '') === sectionFilter);
-            if (subjectFilter !== 'all') users = users.filter((u) => (u.subject || '') === subjectFilter);
+            
+            if (tFilt !== 'all') users = users.filter((u) => u.userType === tFilt);
+            if (pFilt !== 'all') users = users.filter((u) => (u.program || '') === pFilt);
+            if (bFilt !== 'all') users = users.filter((u) => (u.branch || '') === bFilt);
+            if (sFilt !== 'all') users = users.filter((u) => (u.section || '') === sFilt);
+            if (subFilt !== 'all') users = users.filter((u) => (u.subject || '') === subFilt);
+            
             if (!users.length) {
-                usersBox.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No users found for selected filters.</p>';
+                usersBox.className = "flex items-center justify-center py-10 w-full";
+                usersBox.innerHTML = `
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mx-auto mb-4">
+                            <i class="fa-solid fa-users-slash text-2xl"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-gray-500 dark:text-gray-400">No users match filters</p>
+                    </div>`;
                 return;
             }
-            usersBox.innerHTML = users.map((u) => `
-                <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm">
-                    <div class="flex items-center justify-between gap-3">
-                        <span class="font-medium">${u.fullName || '-'}</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full ${u.userType === 'student' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}">${u.userType}</span>
+
+            usersBox.className = "grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2 pb-4 hide-scrollbar";
+            usersBox.innerHTML = users.map((u) => {
+                const initials = (u.fullName || 'U').substring(0,2).toUpperCase();
+                const badge = u.userType === 'student' 
+                    ? '<span class="px-2 py-1 rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 text-[9px] font-extrabold uppercase tracking-widest shadow-sm border border-blue-200/50 dark:border-blue-800/50">Student</span>'
+                    : '<span class="px-2 py-1 rounded-md bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 text-[9px] font-extrabold uppercase tracking-widest shadow-sm border border-purple-200/50 dark:border-purple-800/50">Faculty</span>';
+                
+                return `
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-white flex items-center justify-center font-bold text-sm shadow-inner shrink-0">
+                                ${initials}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-bold text-gray-900 dark:text-white text-sm truncate">${u.fullName || 'Unknown'}</p>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 truncate"><i class="fa-regular fa-envelope mr-1"></i>${u.email || 'No email'}</p>
+                            </div>
+                        </div>
+                        ${badge}
                     </div>
-                    <div class="text-xs mt-1 text-gray-500 dark:text-gray-400">${u.email || '-'}</div>
-                    <div class="text-xs mt-1">Program: ${u.program || '-'} | Branch: ${u.branch || '-'}</div>
-                    <div class="text-xs mt-1">Section: ${u.section || '-'} | Subject: ${u.subject || '-'}</div>
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 grid grid-cols-2 gap-y-3 gap-x-2 border border-gray-100 dark:border-gray-700/50">
+                        <div class="flex flex-col">
+                            <span class="text-[9px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-wider">Program</span>
+                            <span class="text-xs font-semibold text-gray-700 dark:text-gray-200 truncate">${u.program || '-'}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[9px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-wider">Branch</span>
+                            <span class="text-xs font-semibold text-gray-700 dark:text-gray-200 truncate">${u.branch || '-'}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[9px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-wider">Section</span>
+                            <span class="text-xs font-semibold text-gray-700 dark:text-gray-200 truncate">${u.section || '-'}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[9px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-wider">Subject</span>
+                            <span class="text-xs font-semibold text-gray-700 dark:text-gray-200 truncate">${u.subject || '-'}</span>
+                        </div>
+                    </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         async function loadCollegeManagement() {
             try {
                 const response = await fetch('/superadmin/api/college-management');
                 const data = await response.json();
-                if (!response.ok || !data.success) {
-                    throw new Error(data.error || 'Failed to load college management data');
-                }
+                if (!response.ok || !data.success) throw new Error(data.error || 'Failed to load data');
                 colleges = Array.isArray(data.colleges) ? data.colleges : [];
-                selectedCollegeId = colleges.some((c) => Number(c.id) === initialCollegeId)
-                    ? initialCollegeId
-                    : (colleges[0]?.id || 0);
+                selectedCollegeId = colleges.some((c) => Number(c.id) === initialCollegeId) ? initialCollegeId : (colleges[0]?.id || 0);
                 if (initialCollegeId && Number(selectedCollegeId) !== Number(initialCollegeId)) {
-                    document.getElementById('college-strip').innerHTML =
-                        '<p class="text-sm text-red-500">Requested college not found.</p>';
+                    const bannerName = document.getElementById('banner-college-name');
+                    if(bannerName) bannerName.innerHTML = 'Error: Requested college not found.';
                     return;
                 }
                 renderSelectedCollege();
             } catch (error) {
                 console.error(error);
-                document.getElementById('college-strip').innerHTML =
-                    '<p class="text-sm text-red-500">Failed to load college data.</p>';
+                const bannerName = document.getElementById('banner-college-name');
+                if(bannerName) bannerName.innerHTML = 'Error Loading Data';
             }
         }
 
@@ -588,28 +867,40 @@
             const college = colleges.find((c) => Number(c.id) === Number(selectedCollegeId));
             if (!college) return;
             const button = document.getElementById('save-college-meta-btn');
-            const university = document.getElementById('college-university').value.trim();
-            const accreditation = document.getElementById('college-accreditation').value.trim();
-            const oldText = button.textContent;
+            const uni = document.getElementById('college-university').value.trim();
+            const acc = document.getElementById('college-accreditation').value.trim();
+            const oldHtml = button.innerHTML;
             button.disabled = true;
-            button.textContent = 'Saving...';
+            button.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Saving...';
             try {
                 const res = await fetch(`/superadmin/api/colleges/${college.id}/metadata`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ university, accreditation })
+                    body: JSON.stringify({ university: uni, accreditation: acc })
                 });
                 const data = await res.json();
                 if (!res.ok || !data.success) throw new Error(data.error || 'Failed to save');
-                college.university = university;
-                college.accreditation = accreditation;
-                alert('College details updated.');
+                college.university = uni;
+                college.accreditation = acc;
+                
+                button.innerHTML = '<i class="fas fa-check mr-2"></i> Saved';
+                button.classList.replace('bg-gray-900', 'bg-green-600');
+                button.classList.replace('hover:bg-gray-800', 'hover:bg-green-700');
+                button.classList.replace('dark:bg-white', 'dark:bg-green-500');
+                button.classList.replace('dark:text-gray-900', 'dark:text-white');
+                setTimeout(() => {
+                    button.innerHTML = oldHtml;
+                    button.classList.replace('bg-green-600', 'bg-gray-900');
+                    button.classList.replace('hover:bg-green-700', 'hover:bg-gray-800');
+                    button.classList.replace('dark:bg-green-500', 'dark:bg-white');
+                    button.classList.replace('dark:text-white', 'dark:text-gray-900');
+                    button.disabled = false;
+                }, 2000);
             } catch (error) {
                 console.error(error);
-                alert(error.message || 'Failed to update college details.');
-            } finally {
+                alert(error.message || 'Failed to update details.');
+                button.innerHTML = oldHtml;
                 button.disabled = false;
-                button.textContent = oldText;
             }
         }
 
@@ -619,45 +910,34 @@
             });
             ['user-type-filter', 'user-program-filter', 'user-branch-filter', 'user-section-filter', 'user-subject-filter'].forEach((id) => {
                 const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('change', () => {
-                        const college = colleges.find((c) => Number(c.id) === Number(selectedCollegeId));
-                        if (college) renderUsersList(college);
-                    });
-                }
+                if (el) el.addEventListener('change', () => {
+                    const c = colleges.find((x) => Number(x.id) === Number(selectedCollegeId));
+                    if (c) renderUsersList(c);
+                });
             });
             ['academic-program-filter', 'academic-branch-filter', 'academic-section-filter', 'academic-subject-filter'].forEach((id) => {
                 const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('change', () => {
-                        const college = colleges.find((c) => Number(c.id) === Number(selectedCollegeId));
-                        if (college) renderAcademicLists(college);
-                    });
-                }
+                if (el) el.addEventListener('change', () => {
+                    const c = colleges.find((x) => Number(x.id) === Number(selectedCollegeId));
+                    if (c) renderAcademicLists(c);
+                });
             });
-            const clearBtn = document.getElementById('clear-user-filters');
-            if (clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    document.getElementById('user-type-filter').value = 'all';
-                    document.getElementById('user-program-filter').value = 'all';
-                    document.getElementById('user-branch-filter').value = 'all';
-                    document.getElementById('user-section-filter').value = 'all';
-                    document.getElementById('user-subject-filter').value = 'all';
-                    const college = colleges.find((c) => Number(c.id) === Number(selectedCollegeId));
-                    if (college) renderUsersList(college);
+            const cUserBtn = document.getElementById('clear-user-filters');
+            if (cUserBtn) cUserBtn.addEventListener('click', () => {
+                ['user-type-filter', 'user-program-filter', 'user-branch-filter', 'user-section-filter', 'user-subject-filter'].forEach(id => {
+                    document.getElementById(id).value = 'all';
                 });
-            }
-            const clearAcadBtn = document.getElementById('clear-academic-filters');
-            if (clearAcadBtn) {
-                clearAcadBtn.addEventListener('click', () => {
-                    document.getElementById('academic-program-filter').value = 'all';
-                    document.getElementById('academic-branch-filter').value = 'all';
-                    document.getElementById('academic-section-filter').value = 'all';
-                    document.getElementById('academic-subject-filter').value = 'all';
-                    const college = colleges.find((c) => Number(c.id) === Number(selectedCollegeId));
-                    if (college) renderAcademicLists(college);
+                const c = colleges.find((x) => Number(x.id) === Number(selectedCollegeId));
+                if (c) renderUsersList(c);
+            });
+            const cAcadBtn = document.getElementById('clear-academic-filters');
+            if (cAcadBtn) cAcadBtn.addEventListener('click', () => {
+                ['academic-program-filter', 'academic-branch-filter', 'academic-section-filter', 'academic-subject-filter'].forEach(id => {
+                    document.getElementById(id).value = 'all';
                 });
-            }
+                const c = colleges.find((x) => Number(x.id) === Number(selectedCollegeId));
+                if (c) renderAcademicLists(c);
+            });
             setTab('overview');
             loadCollegeManagement();
         });
@@ -665,4 +945,3 @@
     <script src="/js/role-logo-fixes.js"></script>
 </body>
 </html>
-
