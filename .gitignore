@@ -5,3 +5,9 @@ database.sqlite
 .DS_Store
 
 *.sqlite
+
+# Planning and Brain
+brain/
+.planning/
+.gemini/
+.antigravity/
